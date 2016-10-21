@@ -249,6 +249,18 @@ Proof.
   unfold dec. decide equality. 
 Defined.
 
+Instance sum_eq_dec X Y :  
+  eq_dec X -> eq_dec Y -> eq_dec (X * Y).
+Proof.
+  unfold dec. decide equality. 
+Defined.
+
+Instance option_eq_dec X :
+  eq_dec X -> eq_dec (option X).
+Proof.
+  unfold dec. decide equality.
+Defined.
+
 (** ** Numbers **)
 
 Instance nat_le_dec (x y : nat) : dec (x <= y) := 
