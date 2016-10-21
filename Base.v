@@ -114,7 +114,8 @@ Tactic Notation "decide" constr(p) :=
   destruct (Dec p).
 Tactic Notation "decide" constr(p) "as" simple_intropattern(i) := 
   destruct (Dec p) as i.
-
+Tactic Notation "decide" "_" :=
+  destruct (Dec _).
 
 Lemma Dec_true P {H : dec P} : dec2bool (Dec P) = true -> P.
 Proof.
@@ -250,7 +251,7 @@ Proof.
 Defined.
 
 Instance sum_eq_dec X Y :  
-  eq_dec X -> eq_dec Y -> eq_dec (X * Y).
+  eq_dec X -> eq_dec Y -> eq_dec (X + Y).
 Proof.
   unfold dec. decide equality. 
 Defined.
