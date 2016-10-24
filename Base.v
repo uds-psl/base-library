@@ -5,4 +5,15 @@
    - Acknowlegments: Sigurd Schneider, Dominik Kirst, Yannick Forster
  *)
 
-Require Export Prelim BaseLists.
+Require Export
+        Prelim
+        Numbers
+        BaseLists
+        Lists.Cardinality
+        Dupfree
+        Filter
+        Position
+        Power
+        Removal
+        Shared.FCI.
+

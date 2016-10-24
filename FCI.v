@@ -1,4 +1,4 @@
-Require Import BaseLists Numbers.
+Require Import Lists.Cardinality Numbers.
 
 (** ** Finite inductive predicates *)
 

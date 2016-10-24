@@ -10,9 +10,21 @@ Numbers.v
 FCI.v
 
 Lists/BaseLists.v
+Lists/Cardinality.v
+Lists/Dupfree.v
+Lists/Filter.v
+Lists/Position.v
+Lists/Power.v
+Lists/Removal.v
 
 FiniteTypes/BasicDefinitions.v
 FiniteTypes/FinTypes.v
 FiniteTypes/BasicFinTypes.v
 FiniteTypes/CompoundFinTypes.v
+FiniteTypes/VectorFin.v
+FiniteTypes/FiniteFunction.v
+FiniteTypes/Cardinality.v
+
+
+
 

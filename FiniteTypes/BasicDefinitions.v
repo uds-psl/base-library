@@ -2,7 +2,7 @@
 - includes basic Lemmas about said functions 
  *)
 
-Require Export Shared.Base BaseLists.
+Require Export Shared.Base.
 
 (** * Definition of useful tactics *)
 
