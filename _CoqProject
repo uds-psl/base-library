@@ -3,3 +3,16 @@
 COQDOCFLAGS = "--charset utf-8 -s --parse-comments --with-header ../website/resources/header.html --with-footer ../website/resources/footer.html --index indexpage"
 
 Base.v
+
+Tactics.v
+Prelim.v
+Numbers.v
+FCI.v
+
+Lists/BaseLists.v
+
+FiniteTypes/BasicDefinitions.v
+FiniteTypes/FinTypes.v
+FiniteTypes/BasicFinTypes.v
+FiniteTypes/CompoundFinTypes.v
+
