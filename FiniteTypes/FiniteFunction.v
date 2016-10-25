@@ -50,9 +50,25 @@ Proof.
 Qed.
 
 
+(* Now we can prove that the transformation of the function table into another type is correct as long
+as the conversion is injective *)
+
+Lemma finfunc_conv (A: finType) (cA : eqType) (B cB : Type) (f: A -> B) (mA : A -> cA) (mB : B -> cB) a def:
+  injective mA -> lookup (List.map (fun x => (mA (fst x), mB (snd x))) (finfunc_table f))  (mA a) def = mB (f a).
+Proof.
+  intros INJ.
+  erewrite lookup_sound; eauto.
+  - intros a' b1 b2 H1 H2. rewrite in_map_iff in *. destruct H1 as [[] [L1 R1]]. destruct H2 as [[] [L2 R2]].
+    cbn in *.
+    inv L1; inv L2. rewrite (finfunc_sound R1), (finfunc_sound R2), (INJ e e0); congruence.
+  - rewrite in_map_iff. exists (a, f a). subst. split; auto. apply finfunc_comp.
+Qed.
+
+
+
 
 (* (** * Definition of vectors (extensional/ set theoretic functions)  *)
-(*   structure containing a list representing the image and a proof that the list has exactly as many elements as the source type *) *)
+ (*   structure containing a list representing the image and a proof that the list has exactly as many elements as the source type *) *)
 (* Definition Card_X_eq X Y (A: list Y) := |A| = Cardinality X. *)
 (* Definition vector (X: finType) (Y: Type) := subtype (@Card_X_eq X Y). *)
 (* Notation "X --> Y" := (vector X Y) (at level 55, right associativity). *)
@@ -204,7 +220,7 @@ Qed.
 (* Proof. *)
 (*   apply subtype_extensionality.  *)
 (* Qed. *)
-      
+
 (* (** The number if occurences of a function in extensionalpower is equal to the number of occurences of its image in the original list given to extensionalpower as an argument *) *)
 (*  Lemma counttFL X Y L P f : *)
 (*   count (@extensionalPower X Y L P) f = count L (image f). *)
@@ -329,7 +345,7 @@ Qed.
 (*   - reflexivity. *)
 (*   - cbn in *. apply IHA'. *)
 (* Qed.     *)
-    
+
 (* Lemma rightResult (X: finType) (x:X) (B B': list X) (Y: Type)  (y:Y) (A A': list Y) (H:  pure (@Card_X_eq X Y) (A' ++ y::A))  (H': |A'| = | B'|)  (G: elem X = B' ++ x::B): *)
 (*  ((exist _ _ H): X --> Y) x = y. *)
 (* Proof. *)
