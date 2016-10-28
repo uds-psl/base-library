@@ -2,7 +2,7 @@
 - includes basic Lemmas about said functions 
  *)
 
-Require Export Shared.Base.
+Require Export Shared.Base Shared.Extra.Bijection.
 
 (** * Definition of useful tactics *)
 
