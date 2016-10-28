@@ -2,6 +2,26 @@ Require Import Prelim.
 
 (** ** Numbers **)
 
+Lemma complete_induction (p : nat -> Prop) (x : nat) :
+(forall x, (forall y, y<x -> p y) -> p x) -> p x.
+
+Proof. intros A. apply A. induction x ; intros y B.
+exfalso ; omega.
+apply A. intros z C. apply IHx. omega. Qed.
+
+Lemma size_induction X (f : X -> nat) (p : X -> Prop) :
+  (forall x, (forall y, f y < f x -> p y) -> p x) -> 
+  forall x, p x.
+
+Proof. 
+  intros IH x. apply IH. 
+  assert (G: forall n y, f y < n -> p y).
+  { intros n. induction n.
+    - intros y B. exfalso. omega.
+    - intros y B. apply IH. intros z C. apply IHn. omega. }
+  apply G.
+Qed.
+
 Instance nat_le_dec (x y : nat) : dec (x <= y) := 
   le_dec x y.
 
