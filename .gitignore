@@ -39,6 +39,7 @@
 *.glob
 *.v.d
 /.coq-native/  
+Makefile.coq
 
 ### Emacs ###
 # -*- mode: gitignore; -*-
