@@ -85,3 +85,7 @@ Proof.
   eapply FinTypeC. apply sum_enum_ok.
 Defined.
 
+(* Some hints to make the typeclass inference work *)
+
+Hint Extern 4 (finTypeC (EqType (_ * _))) => eapply finTypeC_Prod : typeclass_instances.
+Hint Extern 4 (finTypeC (EqType (_ + _))) => eapply finTypeC_sum : typeclass_instances.

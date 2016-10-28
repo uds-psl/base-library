@@ -24,6 +24,7 @@ FiniteTypes/CompoundFinTypes.v
 FiniteTypes/VectorFin.v
 FiniteTypes/FiniteFunction.v
 FiniteTypes/Cardinality.v
+FiniteTypes/DepPairs.v
 
 
 

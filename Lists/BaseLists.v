@@ -386,3 +386,9 @@ Section Equi.
   
 End Equi.
 
+Lemma in_concat_iff A l (a:A) : a el concat l <-> exists l', a el l' /\ l' el l.
+Proof.
+  induction l; cbn.
+  - intuition. now destruct H. 
+  - rewrite in_app_iff, IHl. firstorder subst. auto. (* TODO: find something faster than firstorder subst *)
+Qed.
