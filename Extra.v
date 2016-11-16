@@ -1,1 +1,3 @@
-Require Export Extra.Bijection.
+Require Export
+        Extra.Bijection
+        Extra.Vectors.
