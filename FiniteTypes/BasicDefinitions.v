@@ -20,10 +20,6 @@ Ltac deq x := destruct (Dec (x=x)) as [[]  | isnotequal]; [> | contradict isnote
 (* Arguments toBool P {D}. *)
 
 (** * Injectivity and surjectivity *)
-Definition injective (X Y: Type) (f: X -> Y):= forall x y, f x = f y -> x = y.
-Definition surjective (X Y : Type) (f : X -> Y) : Prop := forall y, exists x, f x = y.
-Definition bijective (X Y: Type) (f: X -> Y): Prop := injective f /\ surjective f.
-
 
 (* (** * Pure predicates  *)
  (* taken from the development of Herditarily finite sets by Prof. Smolka and Kathrin Stark. *)

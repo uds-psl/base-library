@@ -6,5 +6,7 @@ FiniteTypes.CompoundFinTypes
 FiniteTypes.VectorFin
 FiniteTypes.FiniteFunction
 FiniteTypes.Cardinality
-FiniteTypes.DepPairs.
+FiniteTypes.DepPairs
+FiniteTypes.Arbitrary.
+
 
