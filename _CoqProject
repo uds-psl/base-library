@@ -19,6 +19,7 @@ Lists/Removal.v
 
 Extra.v
 Extra/Bijection.v
+Extra/Vectors.v
 
 FiniteTypes.v
 FiniteTypes/BasicDefinitions.v
@@ -29,6 +30,7 @@ FiniteTypes/VectorFin.v
 FiniteTypes/FiniteFunction.v
 FiniteTypes/Cardinality.v
 FiniteTypes/DepPairs.v
+FiniteTypes/Arbitrary.v
 
 
 
