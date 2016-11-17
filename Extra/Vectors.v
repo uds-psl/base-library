@@ -1,6 +1,13 @@
 Require Export Vector VectorDef.
 
-Import VectorDef.VectorNotations.
+Delimit Scope vector_scope with vector_scope.
+
+Notation "[||]" := (nil _) : vector_scope.
+Notation "h ':::' t" := (cons _ h _ t) (at level 60, right associativity) : vector_scope.
+                        
+Notation " [| x |] " := ((x ::: [||])%vector_scope) : vector_scope.
+Notation " [| x ; y ; .. ; z |] " := (cons _ x _ (cons _ y _ .. (cons _ z _ (nil _)) ..)) : vector_scope.
+Notation "v [@ p ]" := (nth v p) (at level 1, format "v [@ p ]").
 
 Lemma Vector_replace_nth X n (v : Vector.t X n) i (x : X) :
   (Vector.replace v i x) [@i] = x.
