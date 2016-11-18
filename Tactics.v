@@ -24,9 +24,25 @@ Ltac fstep N := unfold N; fold N.
 
 Inductive Lock : Prop -> Prop := L (P : Prop) (x : P) : Lock P.
 
-Lemma Lock_eq (x : Prop) : Lock x <-> x.
+Lemma do_Lock (x : Prop) : Lock x -> x.
 Proof.
-  firstorder. now destruct H. now econstructor.
+  firstorder. now destruct H. 
 Qed.
 
-Tactic Notation "lock" "firstorder" := eapply Lock_eq; firstorder; match goal with [ |- Lock _] => eapply Lock_eq end.
+Lemma do_unLock (x : Prop) : x -> Lock x.
+Proof.
+  firstorder. now econstructor.
+Qed.
+
+Tactic Notation "lock" := eapply do_Lock.
+Tactic Notation "unlock" := eapply do_unLock.
+
+Tactic Notation "lock" ident(H) := eapply do_unLock in H.
+Tactic Notation "unlock" ident(H) := eapply do_Lock in H.
+
+Tactic Notation "locked" tactic(t) := lock; t; unlock.
+
+Tactic Notation "unlock" "all" := repeat match goal with
+                                         | [ H : Lock _ |- _] => unlock H
+                                         | [ |- Lock _ ] => unlock
+                                         end.
