@@ -33,7 +33,6 @@ Lemma allSub (X: finType) (A:list X) : A <<= elem X.
 Proof.
   intros x _. apply elem_spec.
 Qed.
-Arguments allSub {X} A a {_}.
 Hint Resolve allSub.
 
 (** A properties that hold on every element of (elem X) hold for every element of the finType X *)
