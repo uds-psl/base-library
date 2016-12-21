@@ -20,6 +20,8 @@ Tactic Notation "destruct" "*" "eqn" ":" ident(E) :=
 
 Tactic Notation "destruct" "*" "eqn" ":" "_" := destruct * eqn:E.
 
+Tactic Notation "intros" "***" := repeat (intros ?).
+
 Ltac fstep N := unfold N; fold N.
 
 Inductive Lock : Prop -> Prop := L (P : Prop) (x : P) : Lock P.
