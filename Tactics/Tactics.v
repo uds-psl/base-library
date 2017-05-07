@@ -47,4 +47,16 @@ Tactic Notation "locked" tactic(t) := lock; t; unlock.
 Tactic Notation "unlock" "all" := repeat match goal with
                                          | [ H : Lock _ |- _] => unlock H
                                          | [ |- Lock _ ] => unlock
-                                         end.
+                                        end.
+(* From Program.Tactics *)
+Ltac destruct_one_pair :=
+ match goal with
+   | [H : (_ /\ _) |- _] => destruct H
+   | [H : prod _ _ |- _] => destruct H
+ end.
+
+Ltac destruct_pairs := repeat (destruct_one_pair).
+destruct_pairs.
+
+Require Export AutoIndTac.
+

@@ -23,7 +23,7 @@ Hint Unfold class.
 
 Lemma elem_spec (X: finType) (x:X) : x el (elem X).
 Proof.
-  apply countIn.  pose proof (enum_ok x) as H. unfold elem. omega.
+  apply countIn.  pose proof (enum_ok x) as H. unfold elem. omega. 
 Qed.
 
 Hint Resolve elem_spec.

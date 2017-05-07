@@ -4,7 +4,8 @@ COQDOCFLAGS = "--charset utf-8 -s --parse-comments --with-header ../website/reso
 
 Base.v
 
-Tactics.v
+Tactics/Tactics.v
+Tactics/AutoIndTac.v
 Prelim.v
 Numbers.v
 FCI.v
