@@ -56,7 +56,6 @@ Ltac destruct_one_pair :=
  end.
 
 Ltac destruct_pairs := repeat (destruct_one_pair).
-destruct_pairs.
 
 Require Export AutoIndTac.
 
