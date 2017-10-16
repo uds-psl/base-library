@@ -34,6 +34,11 @@ Qed.
 
 (** ** Declaration of finTypeCs for base types as instances of the type class *)
 
+Instance finTypeC_Empty_set: finTypeC (EqType Empty_set).
+Proof.
+  econstructor. eapply Empty_set_enum_ok.
+Defined.
+
 Instance finTypeC_bool: finTypeC (EqType bool).
 Proof.
   econstructor. apply bool_enum_ok.
