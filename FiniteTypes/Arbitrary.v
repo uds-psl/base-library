@@ -79,7 +79,7 @@ Proof.
   - congruence.
 Qed.
 
-Instance subType_eq_dec (X: eqType) (p: X -> Prop) (_: forall x, dec (p x)): eq_dec (subtype p).
+Instance subType_eq_dec X (_:eq_dec X) (p: X -> Prop) (_: forall x, dec (p x)): eq_dec (subtype p).
 Proof.
   intros y z. destruct y as [x p1], z as  [x' p2]. decide (x=x').
   - left.  now apply subtype_extensionality.
