@@ -1,4 +1,4 @@
-Require Export Prelim.
+Require Export Prelim EqDec.
 
 Export ListNotations.
 Notation "x 'el' A" := (In x A) (at level 70).

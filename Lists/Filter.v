@@ -18,7 +18,8 @@ Section Filter.
     induction A as [|y A]; cbn.
     - tauto.
     - destruct (p y) eqn:E; cbn;
-      rewrite IHA; intuition; subst; auto.
+        rewrite IHA; intuition; subst; auto.
+      destruct (p x); auto.
   Qed.
 
   Lemma filter_incl p A :

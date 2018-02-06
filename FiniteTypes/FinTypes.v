@@ -1,16 +1,22 @@
 Require Export BasicDefinitions.
+Require Import Shared.Retracts.
+
 (** ** Formalisation of finite types using canonical structures and type classes *)
 
 (** * Definition of finite Types *)
 
-Class finTypeC  (type:eqType) : Type := FinTypeC {
-                                            enum: list type;
-                                            enum_ok: forall x: type, count enum x = 1
-                                          }.
+Class finTypeC  (type:eqType) : Type :=
+  FinTypeC {
+      enum: list type;
+      enum_ok: forall x: type, count enum x = 1
+    }.
 
-Structure finType : Type := FinType {
-                                type:> eqType;
-                                class: finTypeC type }.
+Structure finType : Type :=
+  FinType
+    {
+      type:> eqType;
+      class: finTypeC type
+    }.
 
 Arguments FinType type {class}.
 Existing Instance class | 0.
@@ -115,15 +121,14 @@ Definition index {F: finType} (x:F) := getPosition (elem F) x.
 Lemma index_nth {F : finType} (x:F) y: nth (index x) (elem F) y = x.
   unfold index, elem, enum.
   destruct F as [[X E] [A all_A]];cbn.
-  assert (H := getPosition_correct x A).
+  pose proof (getPosition_correct x A) as H.
   destruct Dec. auto. apply notInZero in n. now setoid_rewrite all_A in n.
 Qed.
  
-Lemma injective_index (A: finType) : injective (@index A).
+Instance injective_index (A: finType) : injective (@index A).
 Proof.
   destruct (elem A) eqn:E.
-  - hnf. intros.
-    assert (x el elem A) by eauto using elem_spec. rewrite E in H0. firstorder.
-  - clear E. eapply (left_inv_inj (f' := (fun y => nth y (elem A) e))).
+  - hnf. intros. assert (x1 el elem A) by eauto using elem_spec. rewrite E in H0. auto.
+  - clear E. eapply (left_inv_inj (g := (fun y => nth y (elem A) e))).
     hnf. intros. now rewrite index_nth.
 Qed.

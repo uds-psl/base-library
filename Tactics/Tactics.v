@@ -57,5 +57,37 @@ Ltac destruct_one_pair :=
 
 Ltac destruct_pairs := repeat (destruct_one_pair).
 
-Require Export AutoIndTac.
 
+
+(* Show the non-dependent hypothesis of a hypothesis that is a implication and specialize it *)
+Tactic Notation "spec_assert" hyp(H) :=
+  let H' := fresh in
+  match type of H with
+  | ?A -> _ =>
+    assert A as H'; [ | specialize (H H'); clear H']
+  end.
+
+Tactic Notation "spec_assert" hyp(H) "as" simple_intropattern(p) :=
+  let H' := fresh in
+  match type of H with
+  | ?A -> _ =>
+    assert A as H'; [ | specialize (H H') as p; clear H']
+  end.
+
+Tactic Notation "spec_assert" hyp(H) "by" tactic(T) :=
+  let H' := fresh in
+  match type of H with
+  | ?A -> _ =>
+    assert A as H' by T; specialize (H H'); clear H'
+  end.
+
+
+Tactic Notation "spec_assert" hyp(H) "as" simple_intropattern(p) "by" tactic(T) :=
+  let H' := fresh in
+  match type of H with
+  | ?A -> _ =>
+    assert A as H' by T; specialize (H H') as p; clear H'
+  end.
+
+
+Require Export AutoIndTac.
