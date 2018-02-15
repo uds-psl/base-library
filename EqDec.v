@@ -95,43 +95,43 @@ Fact dec_transfer P Q :
   P <-> Q -> dec P -> dec Q.
 Proof.
   unfold dec. tauto.
-Qed.
+Defined.
 
 Instance bool_dec (b: bool) :
   dec b.
 Proof. 
   unfold dec. destruct b; cbn; auto. 
-Qed.
+Defined.
 
 Instance True_dec :
   dec True.
 Proof. 
   unfold dec; tauto. 
-Qed.
+Defined.
 
 Instance False_dec :
   dec False.
 Proof. 
   unfold dec; tauto. 
-Qed.
+Defined.
 
 Instance impl_dec (X Y : Prop) :  
   dec X -> dec Y -> dec (X -> Y).
 Proof. 
   unfold dec; tauto. 
-Qed.
+Defined.
 
 Instance and_dec (X Y : Prop) :  
   dec X -> dec Y -> dec (X /\ Y).
 Proof. 
   unfold dec; tauto. 
-Qed.
+Defined.
 
 Instance or_dec (X Y : Prop) : 
   dec X -> dec Y -> dec (X \/ Y).
 Proof. 
   unfold dec; tauto. 
-Qed.
+Defined.
 
 (* Coq standard modules make "not" and "iff" opaque for type class inference, 
    can be seen with Print HintDb typeclass_instances. *)
@@ -140,13 +140,13 @@ Instance not_dec (X : Prop) :
   dec X -> dec (~ X).
 Proof. 
   unfold not. auto.
-Qed.
+Defined.
 
 Instance iff_dec (X Y : Prop) : 
   dec X -> dec Y -> dec (X <-> Y).
 Proof. 
   unfold iff. auto.
-Qed.
+Defined.
 
 (** ** Discrete types *)
 
@@ -210,16 +210,16 @@ Instance Empty_set_eq_dec:
   eq_dec Empty_set.
 Proof.
   unfold dec. decide equality.
-Qed.
+Defined.
 
 Instance True_eq_dec:
   eq_dec True.
 Proof.
   intros x y. destruct x,y. now left.
-Qed.
+Defined.
 
 Instance False_eq_dec:
   eq_dec False.
 Proof.
   intros [].
-Qed.
+Defined.

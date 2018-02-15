@@ -2,31 +2,16 @@ Require Import Shared.Prelim Shared.Tactics.Tactics Shared.EqDec.
 Require Import Coq.Vectors.Fin Coq.Vectors.Vector.
 
 
-Tactic Notation "dependent" "destruct'" constr(V) :=
-  match type of V with
-  | Vector.t ?Z 0 =>
-    revert all except V;
-    pattern V; revert V;
-    eapply case0; intros
-  | Vector.t ?Z (S ?n) =>
-    revert all except V;
-    pattern V; revert n V;
-    eapply caseS; intros
-  | Fin.t 0 => inv V
-  | Fin.t (S ?n) =>
-    let pos := V in
-    revert all except pos;
-    pattern pos; revert n pos;
-    eapply Fin.caseS; intros
-  | _ => fail "Wrong type"
-  end.
-
 Tactic Notation "dependent" "destruct" constr(V) :=
   match type of V with
   | Vector.t ?Z (S ?n) =>
     revert all except V;
     pattern V; revert n V;
     eapply caseS; intros
+  | Vector.t ?Z 0 =>
+    revert all except V;
+    pattern V; revert V;
+    eapply case0; intros
   | Fin.t 0 => inv V
   | Fin.t (S ?n) =>
     let pos := V in
@@ -47,13 +32,39 @@ Notation " [| x ; y ; .. ; z |] " := (cons _ x _ (cons _ y _ .. (cons _ z _ (nil
 Notation "v [@ p ]" := (nth v p) (at level 1, format "v [@ p ]") : vector_scope.
 
 
-Lemma Vector_replace_nth X n (v : Vector.t X n) i (x : X) :
+Ltac existT_eq :=
+  match goal with
+  | [ H: existT ?X1 ?Y1 ?Z1 = existT ?X2 ?Y2 ?Z2 |- _] =>
+    apply EqdepFacts.eq_sigT_iff_eq_dep in H; inv H
+  end.
+
+Ltac existT_eq' :=
+  match goal with
+  | [ H: existT ?X1 ?Y1 ?Z1 = existT ?X2 ?Y2 ?Z2 |- _] =>
+    apply EqdepFacts.eq_sigT_iff_eq_dep in H; induction H
+  end.
+
+
+Lemma vect_map_injective X Y n (f : X -> Y) (v1 v2 : Vector.t X n) :
+  (forall x y, f x = f y -> x = y) ->
+  map f v1 = map f v2 -> v1 = v2.
+Proof.
+  intros Inj Eq.
+  induction n; cbn in *.
+  - dependent destruct v1. dependent destruct v2; reflexivity.
+  - dependent destruct v1. dependent destruct v2. cbn in *.
+    eapply cons_inj in Eq as (-> % Inj &?). f_equal. now apply IHn.
+Qed.
+
+
+
+Lemma replace_nth X n (v : Vector.t X n) i (x : X) :
   (Vector.replace v i x) [@i] = x.
 Proof.
   induction i; dependent destruct v; cbn; auto.
 Qed.
 
-Lemma Vector_replace_nth2 X n (v : Vector.t X n) i j (x : X) :
+Lemma replace_nth2 X n (v : Vector.t X n) i j (x : X) :
   i <> j -> (Vector.replace v i x) [@j] = v[@j].
 Proof.
   revert v. pattern i, j. revert n i j.
@@ -80,23 +91,49 @@ Proof.
   revert n. apply caseS. eauto.
 Qed.
 
-Ltac existT_eq :=
-  match goal with
-  | [ H: existT ?X1 ?Y1 ?Z1 = existT ?X2 ?Y2 ?Z2 |- _] =>
-    apply EqdepFacts.eq_sigT_iff_eq_dep in H; inv H
-  end.
-
-Ltac existT_eq' :=
-  match goal with
-  | [ H: existT ?X1 ?Y1 ?Z1 = existT ?X2 ?Y2 ?Z2 |- _] =>
-    apply EqdepFacts.eq_sigT_iff_eq_dep in H; induction H
-  end.
-
 Lemma In_cons (X : Type) (n : nat) (x y : X) (xs : Vector.t X n) :
   In y (x ::: xs) -> x = y \/ In y xs.
 Proof.
   intros H. inv H; existT_eq'; tauto.
 Qed.
+
+
+Section In_Dec.
+  Variable X : Type.
+  Hypothesis X_dec : eq_dec X.
+
+  Fixpoint in_dec (n : nat) (x : X) (xs : Vector.t X n) { struct xs } : bool :=
+    match xs with
+    | [||] => false
+    | y ::: xs' => if Dec (x = y) then true else in_dec x xs'
+    end.
+
+  Lemma in_dec_correct (n : nat) (x : X) (xs : Vector.t X n) :
+    in_dec x xs = true <-> In x xs.
+  Proof.
+    split; intros.
+    {
+      induction xs; cbn in *.
+      - congruence.
+      - decide (x = h) as [ -> | D].
+        + constructor.
+        + constructor. now apply IHxs.
+    }
+    {
+      induction H; cbn.
+      - have (x = x).
+      - decide (x = x0).
+        + reflexivity.
+        + apply IHIn.
+    }
+  Qed.
+
+  Global Instance In_dec (n : nat) (x : X) (xs : Vector.t X n) : dec (In x xs).
+  Proof. eapply dec_transfer. eapply in_dec_correct. auto. Defined.
+
+End In_Dec.
+
+  
 
 (* Destruct a vector of known size *)
 Ltac destruct_vector :=

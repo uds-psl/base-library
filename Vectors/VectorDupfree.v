@@ -181,13 +181,13 @@ Compute let xs := [|1;2;3;4;5;6|] in
         Dec (x = y) + count x xs = Dec (x = xs[@i]) + count x (replace xs i y).
 *)
 
-  Lemma replace_nth (n : nat) (xs : Vector.t X n) (p : Fin.t n) :
+  Lemma replace_nochange (n : nat) (xs : Vector.t X n) (p : Fin.t n) :
     replace xs p xs[@p] = xs.
   Proof.
     eapply eq_nth_iff. intros ? ? <-.
     decide (p = p1) as [ -> | D].
-    - now rewrite Vector_replace_nth.
-    - now rewrite Vector_replace_nth2.
+    - now rewrite replace_nth.
+    - now rewrite replace_nth2.
   Qed.
   
   Lemma count_replace (n : nat) (xs : t X n) (x y : X) (i : Fin.t n) :
@@ -205,10 +205,10 @@ Compute let xs := [|1;2;3;4;5;6|] in
       + cbn. decide (x = y); cbn.
         * decide (x = h); cbn; f_equal.
           -- decide (x = xs[@p]); cbn; repeat f_equal; subst.
-             ++ symmetry. now apply replace_nth.
+             ++ symmetry. now apply replace_nochange.
              ++ cbn in *. specialize (IHxs p). decide (h = xs[@p]); tauto.
           -- decide (x = xs[@p]); cbn; repeat f_equal; subst.
-             ++ symmetry. now apply replace_nth.
+             ++ symmetry. now apply replace_nochange.
              ++ cbn in *. specialize (IHxs p). decide (y = xs[@p]); tauto.
         * decide (x = h); cbn; f_equal.
           -- decide (x = xs[@p]); cbn; f_equal; subst.
