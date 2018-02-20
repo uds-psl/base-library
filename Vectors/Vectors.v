@@ -2,6 +2,9 @@ Require Import Shared.Prelim Shared.Tactics.Tactics Shared.EqDec.
 Require Import Coq.Vectors.Fin Coq.Vectors.Vector.
 
 
+(* Vector.nth should not reduce with simpl, except the index is given with a constructor *)
+Arguments Vector.nth {A} {m} (v') !p.
+
 Tactic Notation "dependent" "destruct" constr(V) :=
   match type of V with
   | Vector.t ?Z (S ?n) =>
