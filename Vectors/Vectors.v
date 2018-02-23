@@ -4,6 +4,8 @@ Require Import Coq.Vectors.Fin Coq.Vectors.Vector.
 
 (* Vector.nth should not reduce with simpl, except the index is given with a constructor *)
 Arguments Vector.nth {A} {m} (v') !p.
+Arguments Vector.map {A B} f {n} !v /.
+Arguments Vector.map2 {A B C} g {n} !v1 !v2 /.
 
 Tactic Notation "dependent" "destruct" constr(V) :=
   match type of V with
@@ -252,3 +254,58 @@ Section Test.
   Compute ltac:(getFin' 3) : Fin.t 4.
 End Test.
 *)
+
+Lemma vect_in_map (X Y : Type) (n : nat) (f : X -> Y) (V : Vector.t X n) (x : X) :
+  In x V -> In (f x) (map f V).
+Proof. induction 1; cbn; constructor; auto. Qed.
+
+Lemma vect_in_map_iff (X Y : Type) (n : nat) (f : X -> Y) (V : Vector.t X n) (y : Y) :
+  In y (map f V) <-> (exists x : X, f x = y /\ In x V).
+Proof.
+  split.
+  - intros H. induction V; cbn in *.
+    + inv H.
+    + apply In_cons in H as [ <- | H].
+      * exists h. split; auto. now constructor 1.
+      * specialize (IHV H) as (x&Hx1&Hx2). exists x. split; auto. now constructor 2.
+  - intros (x&<-&H). now apply vect_in_map.
+Qed.
+
+
+Lemma In_replace (X : Type) (n : nat) (xs : Vector.t X n) (i : Fin.t n) (x y : X) :
+  In y (replace xs i x) -> (x = y \/ In y xs).
+Proof.
+  revert i x y. induction xs; intros; cbn in *.
+  - inv i.
+  - dependent destruct i; cbn in *; apply In_cons in H as [-> | H]; auto; try now (right; constructor).
+    specialize (IHxs _ _ _ H) as [-> | IH]; [ now left | right; now constructor ].
+Qed.
+
+Lemma In_replace' (X : Type) (n : nat) (xs : Vector.t X n) (i : Fin.t n) (x y : X) :
+  In y (replace xs i x) -> x = y \/ exists j, i <> j /\ xs[@j] = y.
+Proof.
+  revert i x y. induction xs; intros; cbn -[nth] in *.
+  - inv i.
+  - dependent destruct i; cbn -[nth] in *.
+    + apply In_cons in H as [->|H].
+      * tauto.
+      * apply vect_nth_In' in H as (j&H). right. exists (Fin.FS j). split. discriminate. cbn. assumption.
+    + apply In_cons in H as [->|H].
+      * right. exists Fin.F1. split. discriminate. cbn. reflexivity.
+      * specialize (IHxs _ _ _ H) as [-> | (j&IH1&IH2)]; [ tauto | ].
+        right. exists (Fin.FS j). split. now intros -> % Fin.FS_inj. cbn. assumption.
+Qed.
+
+
+
+(** Conversion between vectors and lists *)
+
+Coercion Vector.to_list : Vector.t >-> list.
+
+Lemma tolist_In (X : Type) (n : nat) (xs : Vector.t X n) (x : X) :
+  Vector.In x xs <-> List.In x xs.
+Proof.
+  split; intros H.
+  - induction H; cbn; auto.
+  - induction xs; cbn in *; auto. destruct H as [-> | H]; econstructor; eauto.
+Qed.

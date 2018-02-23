@@ -49,41 +49,6 @@ Proof.
   intros H1. inv H1. now existT_eq'.
 Qed.
 
-Lemma dupfree_tabulate_functional (X : Type) (n : nat) (f : Fin.t n -> X) :
-  (forall x y, f x = f y -> x = y) ->
-  dupfree (tabulate f).
-Proof.
-  intros H. revert f H. induction n; intros; cbn.
-  - constructor.
-  - constructor.
-    + intros (x & H2 % H) % in_tabulate. congruence.
-    + eapply IHn. now intros x y -> % H % Fin.FS_inj.
-Qed.
-
-Lemma In_replace (X : Type) (n : nat) (xs : Vector.t X n) (i : Fin.t n) (x y : X) :
-  In y (replace xs i x) -> (x = y \/ In y xs).
-Proof.
-  revert i x y. induction xs; intros; cbn in *.
-  - inv i.
-  - dependent destruct i; cbn in *; apply In_cons in H as [-> | H]; auto; try now (right; constructor).
-    specialize (IHxs _ _ _ H) as [-> | IH]; [ now left | right; now constructor ].
-Qed.
-
-Lemma In_replace' (X : Type) (n : nat) (xs : Vector.t X n) (i : Fin.t n) (x y : X) :
-  In y (replace xs i x) -> x = y \/ exists j, i <> j /\ xs[@j] = y.
-Proof.
-  revert i x y. induction xs; intros; cbn -[nth] in *.
-  - inv i.
-  - dependent destruct i; cbn -[nth] in *.
-    + apply In_cons in H as [->|H].
-      * tauto.
-      * apply vect_nth_In' in H as (j&H). right. exists (Fin.FS j). split. discriminate. cbn. assumption.
-    + apply In_cons in H as [->|H].
-      * right. exists Fin.F1. split. discriminate. cbn. reflexivity.
-      * specialize (IHxs _ _ _ H) as [-> | (j&IH1&IH2)]; [ tauto | ].
-        right. exists (Fin.FS j). split. now intros -> % Fin.FS_inj. cbn. assumption.
-Qed.
-
 Lemma dupfree_replace (X : Type) (n : nat) (xs : Vector.t X n) (x : X) :
   dupfree xs -> ~ In x xs -> forall i, dupfree (replace  xs i x).
 Proof.
@@ -103,14 +68,26 @@ Proof.
       * tauto.
 Qed.
 
-Coercion Vector.to_list : Vector.t >-> list.
 
-Lemma tolist_In (X : Type) (n : nat) (xs : Vector.t X n) (x : X) :
-  Vector.In x xs <-> List.In x xs.
+Lemma dupfree_tabulate_injective (X : Type) (n : nat) (f : Fin.t n -> X) :
+  (forall x y, f x = f y -> x = y) ->
+  dupfree (tabulate f).
 Proof.
-  split; intros H.
-  - induction H; cbn; auto.
-  - induction xs; cbn in *; auto. destruct H as [-> | H]; econstructor; eauto.
+  intros H. revert f H. induction n; intros; cbn.
+  - constructor.
+  - constructor.
+    + intros (x & H2 % H) % in_tabulate. congruence.
+    + eapply IHn. now intros x y -> % H % Fin.FS_inj.
+Qed.
+
+Lemma dupfree_map_injective (X Y : Type) (n : nat) (f : X -> Y) (V : Vector.t X n) :
+  (forall x y, f x = f y -> x = y) ->
+  dupfree V ->
+  dupfree (map f V).
+Proof.
+  intros HInj. induction 1.
+  - cbn. constructor.
+  - cbn. constructor; auto. now intros (? & -> % HInj & ?) % vect_in_map_iff.
 Qed.
 
 Lemma tolist_dupfree (X : Type) (n : nat) (xs : Vector.t X n) :
