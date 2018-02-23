@@ -242,16 +242,13 @@ Defined.
 
 
 (* Generate instances of Fin.t *)
-Tactic Notation "getFin" constr(i) constr(j) :=
-  apply (Fin.of_nat_lt (ltac:(omega) : i < j) : Fin.t j).
 
-Tactic Notation "getFin'" int(i) :=
+Tactic Notation "getFin" int(i) :=
   do i apply Fin.FS; eapply Fin.F1.
 
 (*
 Section Test.
-  Compute ltac:(getFin 3 4).
-  Compute ltac:(getFin' 3) : Fin.t 4.
+  Compute ltac:(getFin 3) : Fin.t 4.
 End Test.
 *)
 
