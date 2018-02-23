@@ -21,6 +21,9 @@ Proof.
   apply in_tabulate. eauto.
 Qed.
 
+Definition Fin_initVect_nth (n : nat) (k : Fin.t n) :
+  Vector.nth (Fin_initVect n) k = k.
+Proof. unfold Fin_initVect. apply nth_tabulate. Qed.
 
 Instance Fin_finTypeC n : finTypeC (EqType (Fin.t n)).
 Proof.
