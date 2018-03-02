@@ -22,6 +22,7 @@ Lists/Power.v
 Lists/Removal.v
 
 Vectors/Vectors.v
+Vectors/FinNotation.v
 Vectors/VectorDupfree.v
 
 FiniteTypes.v
