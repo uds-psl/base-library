@@ -241,17 +241,6 @@ Proof.
 Defined.
 
 
-(* Generate instances of Fin.t *)
-
-Tactic Notation "getFin" int(i) :=
-  do i apply Fin.FS; eapply Fin.F1.
-
-(*
-Section Test.
-  Compute ltac:(getFin 3) : Fin.t 4.
-End Test.
-*)
-
 Lemma vect_in_map (X Y : Type) (n : nat) (f : X -> Y) (V : Vector.t X n) (x : X) :
   In x V -> In (f x) (map f V).
 Proof. induction 1; cbn; constructor; auto. Qed.
