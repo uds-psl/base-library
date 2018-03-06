@@ -1,5 +1,6 @@
 Require Import Shared.Prelim Shared.Tactics.Tactics Shared.EqDec.
 Require Import Coq.Vectors.Fin Coq.Vectors.Vector.
+Require Import Shared.Vectors.FinNotation.
 
 
 (* Vector.nth should not reduce with simpl, except the index is given with a constructor *)
@@ -96,11 +97,32 @@ Proof.
   revert n. apply caseS. eauto.
 Qed.
 
+
+Lemma In_nil (X : Type) (x : X) :
+  ~ In x [||].
+Proof. intros H. inv H. Qed.
+
 Lemma In_cons (X : Type) (n : nat) (x y : X) (xs : Vector.t X n) :
   In y (x ::: xs) -> x = y \/ In y xs.
 Proof.
   intros H. inv H; existT_eq'; tauto.
 Qed.
+
+Search Vector.map Vector.In.
+
+Ltac destruct_vector_in :=
+  match goal with
+  | [ H: Vector.In _ [||] |- _ ] => now apply In_nil in H
+  | [ H: Vector.In _ (_ ::: _) |- _ ] => apply In_cons in H as [-> | H] (* Try replacing it first *)
+  | [ H: Vector.In _ (_ ::: _) |- _ ] => apply In_cons in H as [H | H]
+  end.
+
+(*
+Goal ~ Vector.In 10 [|1;2;4|].
+Proof.
+  intros H. repeat destruct_vector_in; congruence.
+Qed.
+*)
 
 
 Section In_Dec.
@@ -155,6 +177,8 @@ Ltac destruct_vector :=
            subst v; rename v' into v
          end.
 
+
+
 Section In_nth.
   Variable (A : Type) (n : nat).
 
@@ -171,12 +195,14 @@ Section In_nth.
   Proof.
     induction n; cbn in *.
     - inversion 1.
-    - dependent destruct v. inv H.
-      + apply EqdepFacts.eq_sigT_eq_dep in H3. induction H3. exists Fin.F1. auto.
-      + apply EqdepFacts.eq_sigT_eq_dep in H3. induction H3. specialize (IHn0 _ H2) as (i&<-). exists (Fin.FS i). auto.
+    - dependent destruct v. destruct_vector_in.
+      + exists Fin.F1. auto.
+      + specialize (IHn0 _ H) as (i&<-). exists (Fin.FS i). auto.
   Qed.
 
 End In_nth.
+
+
 
 Section tabulate_vec.
   Variable X : Type.
@@ -281,6 +307,62 @@ Proof.
       * specialize (IHxs _ _ _ H) as [-> | (j&IH1&IH2)]; [ tauto | ].
         right. exists (Fin.FS j). split. now intros -> % Fin.FS_inj. cbn. assumption.
 Qed.
+
+
+
+
+(** Tactic for simplifying a hypothesis of the form [In x v] *)
+
+
+Ltac simpl_vector_inv :=
+  repeat match goal with
+         | [ H : [||] = (_ ::: _) |- _ ] => now inv H
+         | [ H : (_ ::: _) = [||]  |- _ ] => now inv H
+         | [ H : Fin.F1 = Fin.FS _ |- _] => now inv H
+         | [ H : Fin.FS _ = Fin.F1 |- _] => now inv H
+         | [ H : Fin.FS _ = Fin.FS _ |- _] =>
+           first
+             [ apply Fin.FS_inj in H as ->
+             | apply Fin.FS_inj in H as <-
+             | apply Fin.FS_inj in H
+             ]
+         end.
+
+
+Ltac simpl_vector_in :=
+  repeat
+    match goal with
+    | _ => first
+            [ progress destruct_vector_in
+            | progress simpl_vector_inv
+            | progress auto
+            | congruence
+            ]
+    | [ H : Vector.In _ (Vector.map _ _) |- _] =>
+      let x := fresh "x" in
+      eapply vect_in_map_iff in H as (x&<-&H)
+    | [ H : Vector.In _ (Vector.map _ _) |- _] =>
+      let x := fresh "x" in
+      let H' := fresh H in
+      eapply vect_in_map_iff in H as (x&H&H')
+    | [ H : Vector.In _ (tabulate _) |- _ ] =>
+      let i := fresh "i" in
+      apply in_tabulate in H as (i&->)
+    | [ H : Vector.In _ (tabulate _) |- _ ] =>
+      let i := fresh "i" in
+      let H := fresh "H" in
+      apply in_tabulate in H as (i&H)
+    end.
+
+Ltac vector_not_in :=
+  let H := fresh "H" in
+  intros H; simpl_vector_in.
+
+Goal Vector.In (Fin.F1 (n := 10)) [|Fin1; Fin2; Fin3 |] -> False.
+Proof. intros H. simpl_vector_in. Qed.
+  
+Goal Vector.In (Fin.F1 (n := 10)) (map (Fin.FS) [|Fin0; Fin1; Fin2|]) -> False.
+Proof. intros H. simpl_vector_in. Qed.
 
 
 

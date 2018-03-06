@@ -15,19 +15,6 @@ Inductive dupfree X : forall n, Vector.t X n -> Prop :=
 | dupfreeVC n (x : X) (V : Vector.t X n) :
     ~ Vector.In x V -> dupfree V -> dupfree (x ::: V).
 
-Ltac vector_not_in_step :=
-  match goal with
-  | _ => progress destruct_vector
-  | [ H: Vector.In ?X ?Y |- _ ] => inv H
-  | _ => existT_eq
-  end.
-
-Ltac vector_not_in := repeat intro; repeat vector_not_in_step.
-
-Goal ~ Vector.In 10 [|1;2;4|].
-Proof.
-  vector_not_in.
-Qed.
 
 Ltac vector_dupfree :=
   match goal with
