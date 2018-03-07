@@ -401,9 +401,6 @@ Proof. rewrite <- app_assoc. cbn. trivial. Qed.
 
 (** skipn *)
 
-(* Don't simplify [skipn (S n) xs]; only, if the number and the lists are constructors *)
-Arguments skipn { A } !n !l.
-
 Lemma skipn_nil (X : Type) (n : nat) : skipn n nil = @nil X.
 Proof. destruct n; cbn; auto. Qed.
 
