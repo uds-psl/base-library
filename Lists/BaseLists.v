@@ -390,5 +390,93 @@ Lemma in_concat_iff A l (a:A) : a el concat l <-> exists l', a el l' /\ l' el l.
 Proof.
   induction l; cbn.
   - intuition. now destruct H. 
-  - rewrite in_app_iff, IHl. firstorder subst. auto. (* TODO: find something faster than firstorder subst *)
+  - rewrite in_app_iff, IHl. firstorder subst. auto.
+Qed.
+
+
+Lemma app_comm_cons' (A : Type) (x y : list A) (a : A) :
+  x ++ a :: y = (x ++ [a]) ++ y.
+Proof. rewrite <- app_assoc. cbn. trivial. Qed.
+
+
+(** skipn *)
+
+(* Don't simplify [skipn (S n) xs]; only, if the number and the lists are constructors *)
+Arguments skipn { A } !n !l.
+
+Lemma skipn_nil (X : Type) (n : nat) : skipn n nil = @nil X.
+Proof. destruct n; cbn; auto. Qed.
+
+Lemma skipn_app (X : Type) (xs ys : list X) (n : nat) :
+  n = (| xs |) ->
+  skipn n (xs ++ ys) = ys.
+Proof.
+  intros ->. revert ys. induction xs; cbn; auto.
+Qed.
+  
+
+(** Repeat *)
+
+Lemma map_repeat (X Y : Type) (f : X -> Y) (n : nat) (a : X) :
+  map f (repeat a n) = repeat (f a) n.
+Proof. induction n; cbn in *; f_equal; auto. Qed.
+
+Lemma repeat_add_app (X : Type) (m n : nat) (a : X) :
+  repeat a (m + n) = repeat a m ++ repeat a n.
+Proof. induction m; cbn; f_equal; auto. Qed.
+
+Lemma repeat_S_cons (X : Type) (n : nat) (a : X) :
+  a :: repeat a n = repeat a n ++ [a].
+Proof.
+  replace (a :: repeat a n) with (repeat a (S n)) by trivial. replace (S n) with (n+1) by omega.
+  rewrite repeat_add_app. cbn. trivial.
+Qed.
+
+Lemma repeat_app_eq (X : Type) (m n : nat) (a : X) :
+  repeat a n ++ repeat a m = repeat a m ++ repeat a n.
+Proof. rewrite <- !repeat_add_app. f_equal. omega. Qed.
+
+Lemma repeat_eq_iff (X : Type) (n : nat) (a : X) x :
+  x = repeat a n <-> length x = n /\ forall y, y el x -> y = a.
+Proof.
+  split.
+  {
+    intros ->. split. apply repeat_length. apply repeat_spec.
+  }
+  {
+    revert x. induction n; intros x (H1&H2); cbn in *.
+    - destruct x; cbn in *; congruence.
+    - destruct x; cbn in *; inv H1. f_equal.
+      + apply H2. auto.
+      + apply IHn. auto.
+  }
+Qed.
+
+Lemma rev_repeat (X : Type) (n : nat) (a : X) :
+  rev (repeat a n) = repeat a n.
+Proof.
+  apply repeat_eq_iff. split.
+  - rewrite rev_length. rewrite repeat_length. auto.
+  - intros y Hx % in_rev. eapply repeat_spec; eauto.
+Qed.
+
+Lemma concat_repeat_repeat (X : Type) (n m : nat) (a : X) :
+  concat (repeat (repeat a n) m) = repeat a (m*n).
+Proof.
+  induction m as [ | m' IHm]; cbn.
+  - auto.
+  - rewrite repeat_add_app. f_equal. auto.
+Qed.
+
+
+Corollary skipn_repeat_add (X : Type) (n m : nat) (a : X) :
+  skipn n (repeat a (n + m)) = repeat a m.
+Proof.
+  rewrite repeat_add_app. erewrite skipn_app; eauto. symmetry. apply repeat_length.
+Qed.
+
+Corollary skipn_repeat (X : Type) (n : nat) (a : X) :
+  skipn n (repeat a n) = nil.
+Proof.
+  rewrite <- (app_nil_r (repeat a n)). erewrite skipn_app; eauto. symmetry. apply repeat_length.
 Qed.
