@@ -410,7 +410,16 @@ Lemma skipn_app (X : Type) (xs ys : list X) (n : nat) :
 Proof.
   intros ->. revert ys. induction xs; cbn; auto.
 Qed.
-  
+
+Lemma skipn_length (X : Type) (n : nat) (xs : list X) :
+  length (skipn n xs) = length xs - n.
+Proof.
+  revert xs. induction n; intros; cbn.
+  - omega.
+  - destruct xs; cbn; auto.
+Qed.
+
+
 
 (** Repeat *)
 
