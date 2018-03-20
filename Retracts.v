@@ -1,535 +1,653 @@
 (* Library for injections, bijections, retracts and tight retracts *)
 Require Import Shared.Base.
 
-(*
- * This tactic tries to prove derived injectivity or (tight) retracts
- *)
-Tactic Notation "auto_inj" := repeat (eauto with inj).
-Tactic Notation "auto_inj" integer(k) := repeat (eauto k with inj).
 
-(* Hint database for injections, bijections, retracts and tight retracts *)
-Create HintDb inj.
+(** * Bijections / Inversions *)
 
-Section Bijection.
+Section Inversion.
   Variable X Y : Type.
-  Variable (f : X -> Y) (g : Y -> X).
 
-  Definition left_inverse  := forall x : X, g (f x) = x.
-  Definition right_inverse := forall y : Y, f (g y) = y.
-  Definition inverse := left_inverse /\ right_inverse.
+  (*
+   *      f
+   *   ------>
+   * X         Y
+   *   <------
+   *      g
+   *)
 
-  Existing Class inverse.
+  Definition left_inverse  (f : X -> Y) (g : Y -> X) := forall x : X, g (f x) = x.
+  Definition right_inverse (f : X -> Y) (g : Y -> X) := forall y : Y, f (g y) = y.
 
-  Hypothesis I : inverse.
-  Definition Inverse : inverse := I.
-  Definition Inverse_left  : left_inverse  := ltac:(now apply I).
-  Definition Inverse_right : right_inverse := ltac:(now apply I).
+  (* Class that holds the existence of an inversion between [X] and [Y] *)
+  Class Inversion :=
+    {
+      Inv_f : X -> Y;
+      Inv_g : Y -> X;
+      Inv_inv_left : left_inverse Inv_f Inv_g;
+      Inv_inv_right : right_inverse Inv_f Inv_g;
+    }.
+End Inversion.
 
-End Bijection.
-
-(* With the help of the Inverse* functions, the inversion proof should be automaticly infered *)
-Arguments Inverse       { X } { Y } f g { I }.
-Arguments Inverse_left  { X } { Y } f g { I }.
-Arguments Inverse_right { X } { Y } f g { I }.
-
-Class Inversion (X Y : Type) :=
-  {
-    Inv_f : X -> Y;
-    Inv_g : Y -> X;
-    Inv_inv :> inverse Inv_f Inv_g;
-  }.
-Coercion Inv_inv : Inversion >-> inverse.
-Coercion Build_Inversion : inverse >-> Inversion.
+Arguments Inv_f { _ _ _ }.
+Arguments Inv_g { _ _ _ }.
 
 
-(* Replace [ f (g x) ] with [ x ], etc. *)
+(* This tactic replaces [f (g x)] and [g (f x)] with [x] for inversions. *)
 Ltac inverse :=
   match goal with
-  | [ H : context [ ?f (?g _ ) ] |- _] =>
-    first [
-        (erewrite Inverse_left in H ; [ | now auto_inj ])
-        |
-        (erewrite Inverse_right in H; [ | now auto_inj ])
-      ]
-  | [   |- context [ ?f (?g _ ) ]    ] =>
-    first [
-        (erewrite Inverse_left      ; [ | now auto_inj ])
-        |
-        (erewrite Inverse_right     ; [ | now auto_inj ])
-      ]
+  | [ H : context [ Inv_g (Inv_f _) ] |- _] =>
+    rewrite Inv_inv_left in H
+  | [ H : context [ Inv_f (Inv_g _) ] |- _] =>
+    rewrite Inv_inv_right in H
+  | [ |- context [ Inv_g (Inv_f _) ] ] =>
+    rewrite Inv_inv_left
+  | [ |- context [ Inv_f (Inv_g _) ] ] =>
+    rewrite Inv_inv_right
   end.
 
 
-Section Bijection_Test.
+Section Inverse_Test.
   Variable X Y : Type.
-  Variable (f : X -> Y) (g : Y -> X).
-  Hypothesis I : inverse f g.
-  Goal forall x, g (f x) = x.
+  Variable I : Inversion X Y.
+
+  Goal forall x, Inv_f (Inv_g x) = x.
   Proof.
     intros x. inverse. reflexivity.
   Qed.
 
-  Goal forall y, f (g y) = y.
-  Proof.
-    intros y. inverse. reflexivity.
-  Qed.
-
-End Bijection_Test.
-
+End Inverse_Test.
 
 
 Section Useful_Inversions.
 
   Variable A B C D : Type.
 
-  (* Bijectivity is a euqivialance relation. *)
-  Section Inverse_Equivialence.
-    Global Instance inverse_id : inverse (@id A) (@id A).
-    Proof. hnf. firstorder. Qed.
+  (* The existence of inversions is a equivalence relation. *)
+  Section Inversion_Equivalence.
 
-    Section Inverse_Comp.
+    Global Program Instance Inversion_Id : Inversion A A :=
+      {|
+        Inv_f := id;
+        Inv_g := id;
+      |}.
+    Solve All Obligations with hnf; auto.
 
-      Variable (f1 : A -> B) (g1 : B -> A) (f2 : B -> C) (g2 : C -> B).
+    (* This must not be an Instance, because this would create a loop within [typeclasses eauto] *)
+    Program Definition Inversion_Comp (I1 : Inversion A B) (I2 : Inversion B C) : Inversion A C :=
+      {|
+        Inv_f a := Inv_f (Inv_f a);
+        Inv_g c := Inv_g (Inv_g c);
+      |}.
+    (* XXX: Why doesn't this solve the obligations? *)
+    Solve All Obligations with now (hnf; intuition; now do 2 inverse).
+    Obligation 1. hnf; intuition; now do 2 inverse. Qed.
+    Obligation 2. hnf; intuition; now do 2 inverse. Qed.
 
-      Definition inverse_comp_f : A -> C := fun a => f2 (f1 a).
-      Definition inverse_comp_g : C -> A := fun c => g1 (g2 c).
 
-      Instance inverse_comp  :
-        inverse f1 g1 ->
-        inverse f2 g2 ->
-        inverse inverse_comp_f inverse_comp_g.
-      Proof.
-        unfold inverse_comp_f, inverse_comp_g.
-        intros (H1&H1') (H2&H2'). hnf in *. split; hnf.
-        - intros x. rewrite H2. rewrite H1. reflexivity.
-        - intros c. rewrite H1'. rewrite H2'. reflexivity.
-      Qed.
+    Global Program Definition Inversion_Symmetric (I : Inversion A B) : Inversion B A :=
+      {|
+        Inv_f := fun a => Inv_g a;
+        Inv_g := fun b => Inv_f b;
+      |}.
+    Obligation 1. hnf; intuition; now inverse. Qed.
+    Obligation 2. hnf; intuition; now inverse. Qed.
 
-    End Inverse_Comp.
+  End Inversion_Equivalence.
+
+  Section Inversion_Sum.
+
+    (*
+     * A <-> C         B <-> D
+     * A + B   <---->  C + D
+     *)
+
+    Global Program Instance Inversion_Sum (I1 : Inversion A C) (I2 : Inversion B D) : Inversion (A+B) (C+D) :=
+      {|
+        Inv_f x := match x with
+                   | inl a => inl (Inv_f a)
+                   | inr c => inr (Inv_f c)
+                   end;
+        Inv_g y := match y with
+                   | inl c => inl (Inv_g c)
+                   | inr d => inr (Inv_g d)
+                   end;
+      |}.
+    Next Obligation. hnf; intros [x|y]; f_equal; now inverse. Qed.
+    Next Obligation. hnf; intros [x|y]; f_equal; now inverse. Qed.
     
-    Lemma inverse_symmetric (f : A -> B) (g : B -> A) :
-      inverse f g ->
-      inverse g f.
-    Proof. firstorder. Qed.
+    
+  End Inversion_Sum.
 
-  End Inverse_Equivialence.
+  Section Inversion_Sum_Swap.
 
-  Section Inverse_Sum.
-    Variable (f1 : A -> C) (g1 : C -> A) .
-    Variable (f2 : B -> D) (g2 : D -> B) .
+    (*
+     * A + B <-> B + A
+     *)
 
-    Definition inverse_sum_f : A + B -> C + D :=
-      fun x => match x with
-            | inl a => inl (f1 a)
-            | inr c => inr (f2 c)
-            end.
-
-    Definition inverse_sum_g : C + D -> A + B :=
-      fun y => match y with
-            | inl c => inl (g1 c)
-            | inr d => inr (g2 d)
-            end.
-
-    Global Instance inverse_sum :
-      inverse f1 g1 -> 
-      inverse f2 g2 ->
-      inverse inverse_sum_f inverse_sum_g.
-    Proof. intros H1 H2. unfold inverse_sum_f, inverse_sum_g. hnf. split; hnf; intros [a|b]; now inverse. Qed.
-
-  End Inverse_Sum.
-
-  Section Inverse_Sum_Swap.
-
-    Definition inverse_sum_swap_f : A + B -> B + A :=
-      fun x =>
-        match x with
-        | inl a => inr a
-        | inr b => inl b
-        end.
-
-    Definition inverse_sum_swap_g : B + A -> A + B :=
-      fun x =>
-        match x with
-        | inl b => inr b
-        | inr a => inl a
-        end.
-
-    Global Instance inverse_sum_swap : inverse inverse_sum_swap_f inverse_sum_swap_g.
-    Proof. unfold inverse_sum_swap_f, inverse_sum_swap_g. hnf. split; hnf; intros [a|b]; reflexivity. Qed.
-
-  End Inverse_Sum_Swap.
+    (* No Instance because it could be applyed many times *)
+    Global Program Definition Inversion_Sum_Swap : Inversion (A + B) (B + A) :=
+      {|
+        Inv_f x := match x with
+                   | inl a => inr a
+                   | inr b => inl b
+                   end;
+        Inv_g y := match y with
+                   | inl a => inr a
+                   | inr b => inl b
+                   end;
+      |}.
+    Next Obligation. hnf; intros [x|y]; f_equal; now inverse. Qed.
+    Next Obligation. hnf; intros [x|y]; f_equal; now inverse. Qed.
+    
+  End Inversion_Sum_Swap.
   
-  Section Inverse_Sum_Empty_set.
+  Section Inversion_Sum_Empty_set.
 
-    Definition inverse_sum_Empty_set_f : A + Empty_set -> A :=
-      fun x =>
-        match x with
-        | inl a => a
-        | inr b => match b with end
-        end.
-
-    Definition inverse_sum_Empty_set_g : A -> A + Empty_set := inl.
+    Global Program Instance Inversion_Sum_Empty : Inversion (A + Empty_set) A :=
+      {|
+        Inv_f x := match x with
+                   | inl a => a
+                   | inr e => Empty_set_rect _ e
+                   end;
+        Inv_g a := inl a;
+      |}.
+    Next Obligation. hnf. now intros [ x | [] ]. Qed.
+    Next Obligation. hnf. auto. Qed.
     
-    Global Instance inverse_sum_Empty_set : inverse inverse_sum_Empty_set_f inverse_sum_Empty_set_g.
-    Proof. unfold inverse_sum_Empty_set_f, inverse_sum_Empty_set_g. hnf. split; hnf. now intros [ a | [] ]. tauto. Qed.
+    
+  End Inversion_Sum_Empty_set.
 
-  End Inverse_Sum_Empty_set.
+  Section Inversion_Option_Unit.
 
-  Section Inverse_Option_unit.
+    Global Program Instance Inversion_Option_Unit : Inversion (option A) (A + unit) :=
+      {|
+        Inv_f x := match x with
+                   | Some y => inl y
+                   | None => inr tt
+                   end;
+        Inv_g y := match y with
+                   | inl a => Some a
+                   | inr _ => None
+                   end;
+      |}.
+    Next Obligation. hnf. now intros [ a | ]. Qed.
+    Next Obligation. hnf. now intros [ a | [] ]. Qed.
+    
+  End Inversion_Option_Unit.
 
-    Definition inverse_option_unit_f : option A -> A + unit :=
-      fun x =>
-        match x with
-        | Some y => inl y
-        | None => inr tt
-        end.
 
-    Definition inverse_option_unit_g : A + unit -> option A :=
-      fun y =>
-        match y with
-        | inl a => Some a
-        | inr _ => None
-        end.
-
-    Global Instance inverse_option_unit : inverse inverse_option_unit_f inverse_option_unit_g.
-    Proof.
-      unfold inverse_option_unit_f, inverse_option_unit_g. hnf. split; hnf.
-      - intros [ a | ]; reflexivity.
-      - intros [ a | [ ] ]; reflexivity.
-    Qed.
-
-  End Inverse_Option_unit.
-
-  Section Inverse_involutive.
+  Section Inversion_Involution.
     Variable f : A -> A.
     Hypothesis f_inv : forall a, f (f a) = a.
 
-    Global Instance inverse_involutive : inverse f f.
-    Proof. hnf. split; hnf; auto. Qed.
+    Program Definition Inversion_Involution : Inversion A A :=
+      {|
+        Inv_f := f;
+        Inv_g := f;
+      |}.
 
-  End Inverse_involutive.
-  
-  Definition swap (X Y : Type) : X * Y -> Y * X := fun '(a,b) => (b, a).
-
-  Global Instance inverse_swap : inverse (@swap A B) (@swap B A).
-  Proof. unfold swap. hnf. split; hnf; intros [x y]; reflexivity. Qed.
+  End Inversion_Involution.
 
 End Useful_Inversions.
 
-Hint Resolve inverse_comp          : inj.
-Hint Resolve inverse_id            : inj.
-Hint Resolve inverse_symmetric     : inj.
-Hint Resolve inverse_sum_Empty_set : inj.
-Hint Resolve inverse_sum_swap      : inj.
-Hint Resolve inverse_symmetric     : inj.
-Hint Resolve inverse_option_unit   : inj.
-Hint Resolve inverse_involutive    : inj.
-Hint Resolve inverse_swap          : inj.
+
+
+
+
+
+
+
+
+
+(*
+ * A retract between types [A] and [B] is a tuple of two functions,
+ * [f : A -> B] (called the injection function) and [g : B -> option A] (called the retract function),
+ * such that the following triangle shaped diagram commutes:
+ *
+ *          f
+ *      A -----> B
+ *      |      / 
+ * Some |     / g
+ *      |    / 
+ *     \|/ |/_
+ *    option A
+ *
+ * That informally means, that the injective function [f] can be reverted by the retract function [g].
+ * Foramlly, for all values [x:A] and [y = f x], then [g y = Some x].  (Or: [forall x, g (f x) = Some x].)
+ *)
 
 
 Section Retract.
 
   Variable X Y : Type.
-  Variable (f : X -> Y) (g : Y -> option X).
 
-  Definition retract := forall x, g (f x) = Some x.
-  Existing Class retract.
+  Definition retract (f : X -> Y) (g : Y -> option X) := forall x, g (f x) = Some x.
 
-  Hypothesis I : retract.
+  Class Retract :=
+    {
+      Retr_f : X -> Y;
+      Retr_g : Y -> option X;
+      Retr_adj : retract Retr_f Retr_g;
+    }.
 
-  Definition retract_g_adjoint : forall x, g (f x) = Some x := I.
+  Hypothesis I : Retract.
 
-  Lemma retract_g_surjective : forall x, { y | g y = Some x }.
-  Proof. intros x. pose proof (I x). eauto. Defined.
+  Definition retract_g_adjoint : forall x, Retr_g (Retr_f x) = Some x := Retr_adj.
 
-  Lemma retract_f_injective : forall x1 x2, f x1 = f x2 -> x1 = x2.
+  Lemma retract_g_surjective : forall x, { y | Retr_g y = Some x }.
+  Proof. intros x. pose proof Retr_adj x. eauto. Defined.
+
+  Lemma retract_f_injective : forall x1 x2, Retr_f x1 = Retr_f x2 -> x1 = x2.
   Proof.
     intros x1 x2 H. enough (Some x1 = Some x2) as HE by now inv HE.
-    erewrite <- !I; eauto. now rewrite H.
+    erewrite <- Retr_adj; eauto. rewrite H. apply Retr_adj.
   Qed.
+
 End Retract.
 
-Hint Resolve retract_g_adjoint : inj.
+Arguments Retr_f { _ _ _ }.
+Arguments Retr_g { _ _ _ }.
 
-Class Retract (X Y : Type) :=
-  {
-    Retr_f : X -> Y;
-    Retr_g : Y -> option X;
-    Retr_adj :> retract Retr_f Retr_g;
-  }.
-Coercion Retr_adj : Retract >-> retract.
-Coercion Build_Retract : retract >-> Retract.
-
-Ltac retract_adjoint :=
-  match goal with
-  | [   |- context [ ?g (?f ?X) ]     ] => rewrite retract_g_adjoint;      [ | now auto_inj]
-  | [ H : context [ ?g (?f ?X) ] |- _ ] => rewrite retract_g_adjoint in H; [ | now auto_inj]
-  end.
-
+(*
+ * An tight retract has the additional property, that the retract function only reverts values in the image of [f].
+ * Foramlly this means that whenever [g y = Some x], then also [y = f x]
+ * All properties of retracts hold automatically for tight retracts, since every tight retract "is" a retract.
+ *)
 Section TightRetract.
 
   Variable X Y : Type.
-  Variable (f : X -> Y) (g : Y -> option X).
 
-  Definition tight_retract := forall x y, g y = Some x <-> y = f x.
-  Existing Class tight_retract.
+  Definition tight_retract (f : X -> Y) (g : Y -> option X) := forall x y, g y = Some x <-> y = f x.
 
-  Variable I : tight_retract.
+  Class TRetract :=
+    {
+      TRetr_f : X -> Y;
+      TRetr_g : Y -> option X;
+      TRetr_inv : tight_retract TRetr_f TRetr_g;
+    }.
 
-  Global Instance tight_retract_strong : retract f g := ltac:(firstorder).
+  Hypothesis I : TRetract.
 
-  Definition tretract_g_inv : forall x y, g y = Some x <-> y = f x := I.
-  Definition tretract_g_inv' : forall x y, g y = Some x -> y = f x := ltac:(apply tretract_g_inv; auto).
-  Definition tretract_g_adjoint : forall x, g (f x) = Some x := retract_g_adjoint _.
+  Global Program Instance TRetract_Retract : Retract X Y :=
+    {|
+      Retr_f := TRetr_f;
+      Retr_g := TRetr_g;
+    |}.
+  Next Obligation. hnf. intros x. now apply TRetr_inv. Qed.
 
-  Lemma tretract_g_surjective : forall x, { y | g y = Some x }.
-  Proof. intros x. pose proof (tretract_g_adjoint x). eauto. Defined.
-
-  Definition tretract_f_injective : forall x1 x2, f x1 = f x2 -> x1 = x2 := retract_f_injective _.
-    
 End TightRetract.
 
-Hint Unfold tight_retract         : inj.
-Hint Resolve tight_retract_strong : inj.
-Hint Resolve tretract_g_inv       : inj.
-Hint Resolve tretract_g_inv'      : inj.
+Arguments TRetr_f { _ _ _ }.
+Arguments TRetr_g { _ _ _ }.
 
-Class TRetract (X Y : Type) :=
-  {
-    TRetr_f : X -> Y;
-    TRetr_g : Y -> option X;
-    TRetr_inv :> tight_retract TRetr_f TRetr_g;
-  }.
-Coercion TRetr_inv : TRetract >-> tight_retract.
-Coercion Build_TRetract : tight_retract >-> TRetract.
+Coercion TRetract_Retract : TRetract >-> Retract.
 
 
-Section Retract_Compose.
-  Variable (X Y Z : Type).
-  Variable (f1 : X -> Y) (g1 : Y -> option X).
-  Variable (f2 : Y -> Z) (g2 : Z -> option Y).
+(* The above instance [TRetract_Retract] that is also used as implcit coercion makes sure that we can
+ * use tight retracts in place of normal retracts. *)
 
-  Definition retract_comp_f := fun x => f2 (f1 x).
-  Definition retract_comp_g :=
-    fun z =>
-      match g2 z with
-      | Some y => g1 y
-      | None => None
-      end.
+Section TightRetract_InheritedProperties.
 
-  Lemma retract_compose (retr1 : retract f1 g1) (retr2 : retract f2 g2) :
-    retract retract_comp_f retract_comp_g.
-  Proof.
-    hnf. unfold retract_comp_f, retract_comp_g. intros x. retract_adjoint. rewrite retract_g_adjoint; eauto.
-  Qed.
+  Variable X Y : Type.
 
-  Lemma tretract_compose (retr1 : tight_retract f1 g1) (retr2 : tight_retract f2 g2) :
-    tight_retract retract_comp_f retract_comp_g.
-  Proof.
-    unfold retract_comp_f, retract_comp_g. hnf.
-    split.
-    - intros H. destruct (g2 y) eqn:E.
-      + eapply tretract_g_inv in E as ->. eapply tretract_g_inv in H as ->. all:auto.
+  Hypothesis I : TRetract X Y.
+
+  Definition tretract_g_adjoint : forall x, TRetr_g (TRetr_f x) = Some x := ltac:(intros x; now apply TRetr_inv).
+
+  (* Here we only apply lemmas of normal retracts!  The coercion is not used, but the instance [TRetract_Retract] *)
+  Lemma tretract_g_surjective : forall x, { y | TRetr_g y = Some x }.
+  Proof. intros x. pose proof Retr_adj x. cbn in H. eauto. Defined.
+
+  Lemma tretract_f_injective : forall x1 x2, TRetr_f x1 = TRetr_f x2 -> x1 = x2.
+  Proof. intros x1 x2 H. eapply retract_f_injective. cbn. eauto. Qed.
+
+End TightRetract_InheritedProperties.
+
+
+
+(* This tactic replaces all occurrences of [g (f x)] with [Some x] for (tight) retracts. *)
+Ltac retract_adjoint :=
+  match goal with
+  | [ H : context [ Retr_g (Retr_f _) ] |- _ ] => rewrite retract_g_adjoint in H
+  | [   |- context [ Retr_g (Retr_f _) ]     ] => rewrite retract_g_adjoint
+  | [ H : context [ TRetr_g (TRetr_f _) ] |- _ ] => rewrite tretract_g_adjoint in H
+  | [   |- context [ TRetr_g (TRetr_f _) ]     ] => rewrite tretract_g_adjoint
+  end.
+
+
+
+  
+(*
+ * We can compose Compose (tight) retracts, as shown in the following commuting diagram
+ *
+ *            f1        f2
+ *      A --------> B --------> C
+ *      |         / |         /
+ *      |        /  |Some    /
+ *      |       /   |       /
+ *      |      /    |      /
+ * Some |     / g1  |     / g2
+ *      |    /      |    /
+ *     \|/ |/_     \|/ |/_
+ *    option A <--- option B
+ *            map g1
+ *   
+ *
+ * Where [map g1] is the function that takes an option [x : option B] and applys [Some] and [g1] if it is [Some],
+ * and else returns [None].
+ *
+ * Now [f2 ∘ f1] and [map g1 ∘ g2] gives a retract between [A] and [C].
+ *)
+
+Section ComposeRetracts.
+  Variable A B C : Type.
+
+  (* No instance, for obvious reasons... *)
+  Global Program Definition ComposeRetract (retr1 : Retract A B) (retr2 : Retract B C) : Retract A C :=
+    {|
+      Retr_f a := Retr_f (Retr_f a);
+      Retr_g c := match Retr_g c with
+                  | Some b => Retr_g b
+                  | None => None
+                  end;
+    |}.
+  Next Obligation. hnf. intros a. now do 2 rewrite retract_g_adjoint. Qed.
+
+
+  (* We have to copy the definition again for tight retracts, because we use different structures *)
+
+  Global Program Definition ComposeTRetract (retr1 : TRetract A B) (retr2 : TRetract B C) : TRetract A C :=
+    {|
+      TRetr_f a := TRetr_f (TRetr_f a);
+      TRetr_g c := match TRetr_g c with
+                  | Some b => TRetr_g b
+                  | None => None
+                  end;
+    |}.
+  Next Obligation.
+    hnf. intros a c. split.
+    - intros H. destruct (TRetr_g c) as [b | ] eqn:E.
+      + apply TRetr_inv in E as ->. apply TRetr_inv in H as ->. auto.
       + congruence.
-    - hnf. intros ->. unfold retract_comp_f, retract_comp_g. rewrite tretract_g_adjoint; auto with inj.
+    - intros ->. now do 2 rewrite tretract_g_adjoint.
   Qed.
 
-End Retract_Compose.
+End ComposeRetracts.
 
-Hint Resolve tretract_compose : inj.
 
-Section Inversion_Retract.
+(* We can build a tight retract from an inversion, by applying [Some] in [g]. *)
+(* TODO/Note: To build a (normal) retract, we only need an injective function. *)
+
+Section Inversion_TRetract.
   Variable A B : Type.
-  Variable (f : A -> B) (g : B -> A).
-  
-  Global Instance inversion_retract :
-    inverse f g ->
-    tight_retract f (fun b => Some (g b)).
-  Proof.
-    intros H. hnf. intros a b. split.
-    - intros H2. inv H2.  now inverse.
-    - intros ->. f_equal. now inverse.
-  Qed.
-  
-End Inversion_Retract.
 
-Hint Resolve inversion_retract : inj.
+  Global Program Instance Inversion_TRetract (inv : Inversion A B) : TRetract A B :=
+    {|
+      TRetr_f a := Inv_f a;
+      TRetr_g b := Some (Inv_g b);
+    |}.
+  Next Obligation.
+    hnf. intros a b. split.
+    - inversion 1. now inverse.
+    - intros ->. now inverse.
+  Qed.
+
+  (* Note:  We don't need to show that we can build a retract from an inversion,
+   * since we can build a retract from a tight retract from an inversion. *)
+
+End Inversion_TRetract.
+
+
+
+(* We define some other useful retracts, that do not correspond to inversions *)
+
 
 Section Usefull_Retracts.
 
   Variable (A B C D : Type).
 
-  (*
-  Instance retract_id : tight_retract (@id A) (@Some A) := ltac:(unfold id; firstorder congruence).
-  *)
 
-  (* This can be derived, because [ id ] is a inversion with itself. *)
-  Global Instance retract_id : tight_retract (@id A) (@Some A) := ltac:(now auto_inj).
-
-  Global Instance retract_option : tight_retract (@Some A) id := ltac:(now auto_inj).
-
-  Definition retract_inl_g := fun z : A + B => match z with inl x => Some x | inr _ => None end.
-
-  Global Instance retract_inl : tight_retract inl retract_inl_g.
-  Proof. hnf. intros x z. unfold retract_inl_g. destruct z; firstorder congruence. Qed.
-
-  Definition retract_inr_g := fun z : A + B => match z with inr x => Some x | inl _ => None end.
-
-  Global Instance retract_inr : tight_retract inr retract_inr_g.
-  Proof. hnf. intros x z. unfold retract_inr_g. destruct z; firstorder congruence. Qed.
-
-  Definition retract_empty_f : Empty_set -> A := fun x : Empty_set => match x with end.
-  Definition retract_empty_g : A -> option Empty_set := fun y => None.
+  (* We can introduce an additional [Some] and use the identity as the retract function *)
+  Global Program Instance TRetract_Option : TRetract A (option A) :=
+    {|
+      TRetr_f a := Some a;
+      TRetr_g b := b;
+    |}.
+  Next Obligation. hnf. intros a b. split; now intros ->. Qed.
   
-  Global Instance retract_empty : tight_retract retract_empty_f retract_empty_g.
-  Proof.
-    hnf. unfold retract_empty_f, retract_empty_g. firstorder.
-    - congruence.
-    - destruct x.
+
+  (* We can introduce an additional [inl] *)
+  Global Program Instance TRetract_inl : TRetract A (A + B) :=
+    {|
+      TRetr_f a := inl a;
+      TRetr_g c := match c with
+                   | inl a => Some a
+                   | inr b => None
+                   end;
+    |}.
+  Next Obligation.
+    hnf. intros a x. split.
+    - intros H. destruct x; now inv H.
+    - now intros ->.
   Qed.
+
+
+  (* The same for [inr] *)
+  Global Program Instance TRetract_inr : TRetract B (A + B) :=
+    {|
+      TRetr_f b := inr b;
+      TRetr_g c := match c with
+                   | inl a => None
+                   | inr b => Some b
+                   end;
+    |}.
+  Next Obligation.
+    hnf. intros a x. split.
+    - intros H. destruct x; now inv H.
+    - now intros ->.
+  Qed.
+
+
+  (* We can build retracts from [Empty_set] to any type *)
+  Global Program Instance TRetract_Empty : TRetract Empty_set A :=
+    {|
+      TRetr_f e := Empty_set_rect _ e;
+      TRetr_g a := None;
+    |}.
+  Next Obligation. hnf. intros []. Qed.
+  
+
+
+  (*
+   * We can map retracts over sums, similiary as we have done with inversions
+   *
+   *)
 
   Section RetractSum.
 
-    Variable (f1 : A -> C) (g1 : C -> option A) .
-    Variable (f2 : B -> D) (g2 : D -> option B) .
+    Global Program Instance Retract_Sum (retr1 : Retract A C) (retr2 : Retract B D) : Retract (A+B) (C+D) :=
+      {|
+        Retr_f x := match x with
+                    | inl a => inl (Retr_f a)
+                    | inr b => inr (Retr_f b)
+                    end;
+        Retr_g y := match y with
+                    | inl c => match Retr_g c with
+                              | Some a => Some (inl a)
+                              | None => None
+                              end
+                    | inr d => match Retr_g d with
+                              | Some b => Some (inr b)
+                              | None => None
+                              end
+                    end;
+      |}.
+    Next Obligation. hnf. intros [a | b]; now rewrite Retr_adj. Qed.
 
-    Definition retract_sum_f : A + B -> C + D :=
-      fun x => match x with
-            | inl a => inl (f1 a)
-            | inr c => inr (f2 c)
-            end.
-
-    Definition retract_sum_g : C + D -> option (A + B) :=
-      fun y => match y with
-            | inl c => match g1 c with
-                      | Some a => Some (inl a)
-                      | None => None
-                      end
-            | inr d => match g2 d with
-                      | Some b => Some (inr b)
-                      | None => None
-                      end
-            end.
-
-    Global Instance retract_sum :
-      retract f1 g1 -> 
-      retract f2 g2 ->
-      retract retract_sum_f retract_sum_g.
-    Proof.
-      intros H1 H2. intros [a|b]; hnf; cbn; retract_adjoint; auto.
-    Qed.
-
-    Global Instance tretract_sum :
-      tight_retract f1 g1 -> 
-      tight_retract f2 g2 ->
-      tight_retract retract_sum_f retract_sum_g.
-    Proof.
-      intros H1 H [a|b] [c|d]; hnf; cbn;
-        (split; [intros H3; f_equal; first [destruct (g1 _) eqn:E | destruct (g2 _) eqn:E];
-                 inv H3; repeat retract_adjoint; auto_inj | intros H3; inv H3; try retract_adjoint; auto_inj ]).
+    
+    (* Definition has to be copied again for tight retracts *)
+    Global Program Instance TRetract_Sum (retr1 : TRetract A C) (retr2 : TRetract B D) : TRetract (A+B) (C+D) :=
+      {|
+        TRetr_f x := match x with
+                     | inl a => inl (TRetr_f a)
+                     | inr b => inr (TRetr_f b)
+                     end;
+        TRetr_g y := match y with
+                     | inl c => match TRetr_g c with
+                               | Some a => Some (inl a)
+                               | None => None
+                               end
+                     | inr d => match TRetr_g d with
+                               | Some b => Some (inr b)
+                               | None => None
+                               end
+                     end;
+      |}.
+    Next Obligation.
+      hnf. intros x y. split.
+      - intros H. destruct y as [c|d]; cbn in *.
+        + destruct (TRetr_g c) eqn:E1; inv H. f_equal. now apply TRetr_inv.
+        + destruct (TRetr_g d) eqn:E1; inv H. f_equal. now apply TRetr_inv.
+      - intros ->. destruct x as [a | b]; now rewrite tretract_g_adjoint.
     Qed.
 
   End RetractSum.
 
 End Usefull_Retracts.
 
-Hint Resolve retract_id        : inj.
-Hint Resolve retract_option    : inj.
-Hint Resolve retract_inl       : inj.
-Hint Resolve retract_inr       : inj.
-Hint Resolve tretract_sum      : inj.
 
-Section RetractCons.
 
-  Variable A : eqType.
-  Variable a : A.
+(* We can build a tight retract for every retract where the target type is decidable. *)
 
-  Definition retract_cons_g : list A -> option (list A) :=
-    fun xs =>
-      match xs with
-      | x :: xs' => if Dec (x = a) then Some xs' else None
-      | nil => None
-      end.
+Section Retract_TRetract.
+  Variable (X : Type) (Y : eqType).
+  Hypothesis retr : Retract X Y.
   
-  Global Instance retract_cons : tight_retract (cons a) retract_cons_g.
+  
+  (* We can decide weather a value is in the image of the injection *)
+  Global Instance retract_dec_in_image :
+    forall y, dec (exists x, Retr_f x = y).
   Proof.
-    unfold retract_cons_g. hnf. intros xs ys. split.
-    - destruct ys; intros H; inv H. decide (e = a); now inv H1.
-    - intros ->. decide (a = a); tauto.
+    intros y. destruct (Retr_g y) as [x | ] eqn:E.
+    - decide (Retr_f x = y) as [<- | D].
+      + left. eauto.
+      + right. intros (x'&<-). enough (Some x' = Some x) by congruence.
+        erewrite <- retract_g_adjoint; eauto.
+    - right. intros (x&<-). rewrite retract_g_adjoint in E; eauto. congruence.
   Qed.
 
-  Variable B : Type.
-  Definition retract_pair_g : A * B -> option B :=
-    fun '(x, b) => if Dec (a = x) then Some b else None.
 
-  Global Instance retract_pair : tight_retract (pair a) retract_pair_g.
-  Proof. unfold retract_pair_g. hnf. intros b (x&y). decide (a = x); firstorder congruence. Qed.
+  (* No instance here, or [typeclasses eauto] could cycle between [TRetract_Retract] and [Retract_TRetract] *)
+  Program Definition Retract_TRetract : TRetract X Y :=
+    {|
+      TRetr_f x := Retr_f x;
+      TRetr_g y := if Dec (exists x, Retr_f x = y) then Retr_g y else None;
+    |}.
+  Next Obligation.
+    split.
+    - intros H. decide (exists x, Retr_f x = y) as [ (x'&<-) | D].
+      + rewrite retract_g_adjoint in H; auto. congruence.
+      + congruence.
+    - intros ->. decide (exists x', Retr_f x' = Retr_f x) as [ (x'&Hx') | D].
+      + rewrite retract_g_adjoint; auto.
+      + contradict D. eauto.
+  Qed.
 
-End RetractCons.
-Hint Resolve retract_cons.
+End Retract_TRetract.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+(** * Injective functions *)
+
+(* maybe deprecated *)
 
 Section Injection.
 
   Variable X Y : Type.
 
   Definition injective (f : X -> Y) := forall x1 x2, f x1 = f x2 -> x1 = x2.
-  Existing Class injective.
 
-  Definition inj_injective {f : X -> Y} {I : injective f} : forall x1 x2, f x1 = f x2 -> x1 = x2 := I.
+  Class Injection :=
+    {
+      Inj_f : X -> Y;
+      Inj_inj : injective Inj_f;
+    }.
 
 End Injection.
 
+Arguments Inj_f { _ _ _ }.
+
+
+(* Every inversion is also an injection *)
 Section Inverse_Injective.
   Variable X Y : Type.
-  Variable (f : X -> Y) (g : Y -> X).
 
-  Global Instance left_inv_inj : left_inverse f g -> injective f.
+  Lemma left_inv_inj (f : X -> Y) (g : Y -> X) : left_inverse f g -> injective f.
   Proof.
-    intros Inv. hnf in *. intros x1 x2 H.
-    enough (g (f x1) = g (f x2)) as ?L by now rewrite !Inv in L.
+    intros HInv. hnf in *. intros x1 x2 Heq.
+    enough (g (f x1) = g (f x2)) as ?L by now rewrite !HInv in L.
     now f_equal.
   Qed.
 
-  Global Instance right_inv_inj : right_inverse f g -> injective g.
-  Proof.
-    intros Inv. hnf in *. intros x1 x2 H.
-    enough (f (g x1) = f (g x2)) as ?L by now rewrite !Inv in L.
-    now f_equal.
-  Qed.
-
-  Global Instance inverse_injective : inverse f g -> injective f.
-  Proof. intros (H1,H2). now apply left_inv_inj. Qed.
-
+  Global Program Instance Inversion_Injection (inv : Inversion X Y) : Injection X Y :=
+    {|
+      Inj_f x := Inv_f x;
+    |}.
+  Next Obligation. eapply left_inv_inj, Inv_inv_left. Qed.
+  
 End Inverse_Injective.
 
-
-Class Injection (X Y : Type) :=
-  {
-    Inj_f : X -> Y;
-    Inj_inj :> injective  Inj_f;
-  }.
-Coercion Inj_inj : Injection >-> injective.
-Coercion Build_Injection : injective >-> Injection.
+Coercion Inversion_Injection : Inversion >-> Injection.
 
 Ltac inj_subst :=
   match goal with
-  | [ H : ?t ?x = ?t ?y |- _] => eapply inj_injective in H; [ subst | now auto_inj]
+  | [ H : Inj_f _ = Inj_f _ |- _] => apply Inj_inj in H
   end.
 
-Global Instance injection_id (X : Type) : injective (@id X) := ltac:(unfold id; firstorder).
 
-Section Injection_Compose.
-  Variable X Y Z : Type.
-  Variable (f : X -> Y) (g : Y -> Z).
-  Hypothesis (f_inj : injective f) (g_inj : injective g).
+Section Useful_Injections.
+  Variable A B C : Type.
 
-  Definition compose_inj : X -> Z := fun x => g (f x).
+  Global Program Instance Injection_Id : Injection A A :=
+    {|
+      Inj_f a := a;
+    |}.
+  Next Obligation. hnf. auto. Qed.
 
-  Global Instance compose_inj_injective : injective compose_inj := ltac:(firstorder).
+  Global Program Instance Injection_Compose (inj1 : Injection A B) (inj2 : Injection B C) : Injection A C :=
+    {|
+      Inj_f a := Inj_f (Inj_f a);
+    |}.
+  Next Obligation. hnf. intros a1 a2 H. now do 2 inj_subst. Qed.
 
-End Injection_Compose.
+
+End Useful_Injections.
 
 
+(* (* TODO: Does this belong to here? *)
 Section Map_Injective.
   Variable (sig tau : Type) (t : sig -> tau).
   Hypothesis t_injective : injective t.
@@ -543,7 +661,11 @@ Section Map_Injective.
   Qed.
 
 End Map_Injective.
+*)
 
+
+
+(*
 Global Instance retract_injective (A B : Type) (f : A -> B) (g : B -> option A) :
   retract f g -> injective f.
 Proof.
@@ -568,37 +690,4 @@ Hint Resolve injective_inr : inj.
 (* TODO: Can any injection between decidable types be made a retract? *)
 Section Dec_Retract.
 End Dec_Retract.
-
-
-Section Retract_TightRetract.
-  Variable (X : Type) (Y : eqType) (f : X -> Y) (g : Y -> option X).
-  Hypothesis retr : retract f g.
-
-  Local Instance retract_dec_image :
-    forall y, dec (exists x, f x = y).
-  Proof.
-    intros y. destruct (g y) as [x | ] eqn:E.
-    - decide (f x = y) as [<- | D].
-      + left. eauto.
-      + right. intros (x'&<-). enough (Some x' = Some x) by congruence.
-        erewrite <- retract_g_adjoint; eauto.
-    - right. intros (x&<-). rewrite retract_g_adjoint in E; eauto. congruence.
-  Qed.
-
-  Definition make_tight_retract_g : Y -> option X :=
-    fun y => if Dec (exists x, f x = y) then g y else None.
-
-  Lemma make_tight_retract : tight_retract f make_tight_retract_g.
-  Proof.
-    unfold make_tight_retract_g. split.
-    - intros H. decide (exists x, f x = y) as [ (x'&<-) | D].
-      + rewrite retract_g_adjoint in H; auto. congruence.
-      + congruence.
-    - intros ->. decide (exists x', f x' = f x) as [ (x'&Hx') | D].
-      + rewrite retract_g_adjoint; auto.
-      + contradict D. eauto.
-  Qed.
-
-End Retract_TightRetract.
-
-Hint Resolve make_tight_retract : inj.
+*)

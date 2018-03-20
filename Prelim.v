@@ -45,7 +45,22 @@ Proof.
   intros A. rewrite A. cbn. auto.
 Qed.
 
+Lemma bool_Prop_true' (b : bool) :
+  b -> b = true.
+Proof.
+  intros A. cbv in A. destruct b; tauto.
+Qed.
+
+Lemma bool_Prop_false' (b : bool) :
+  ~ b -> b = false.
+Proof.
+  intros A. cbv in A. destruct b; tauto.
+Qed.
+
+
 Hint Resolve bool_Prop_true bool_Prop_false.
+Hint Resolve bool_Prop_true' bool_Prop_false'.
+
 
 Definition bool2nat := fun b : bool => if b then 1 else 0.
 Coercion bool2nat : bool >-> nat.

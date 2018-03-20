@@ -63,10 +63,18 @@ Proof.
   decide P; cbv in *; firstorder.
 Qed.
 
+Lemma Dec_true' (P : Prop) (d : dec P) : P -> Decb P = true.
+Proof. intros H. decide P; cbn; tauto. Qed.
+
+Lemma Dec_false' (P : Prop) (d : dec P) : (~ P) -> Decb P = false.
+Proof. intros H. decide P; cbn; tauto. Qed.
+
 Hint Extern 4 =>
 match goal with
   [ H : dec2bool (Dec ?P) = true  |- _ ] => apply Dec_true in  H
 | [ H : dec2bool (Dec ?P) = false |- _ ] => apply Dec_false in H
+| [ |- dec2bool (Dec ?P) = true] => apply Dec_true'
+| [ |- dec2bool (Dec ?P) = false] => apply Dec_false'
 end.
 
 (** Decided propositions behave classically *)

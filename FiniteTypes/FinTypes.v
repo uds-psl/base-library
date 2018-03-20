@@ -125,7 +125,7 @@ Lemma index_nth {F : finType} (x:F) y: nth (index x) (elem F) y = x.
   destruct Dec. auto. apply notInZero in n. now setoid_rewrite all_A in n.
 Qed.
  
-Instance injective_index (A: finType) : injective (@index A).
+Lemma injective_index (A: finType) (x1 x2 : A) : index x1 = index x2 -> x1 = x2.
 Proof.
   destruct (elem A) eqn:E.
   - hnf. intros. assert (x1 el elem A) by eauto using elem_spec. rewrite E in H0. auto.
