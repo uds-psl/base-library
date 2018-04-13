@@ -53,7 +53,7 @@ Proof. do 2 constructor. Defined.
 Instance inhabited_vector (a : Type) (n : nat) (inh_a : inhabitedC a) : inhabitedC (Vector.t a n).
 Proof. constructor. eapply VectorDef.const. apply default. Defined.
 
-Instance inhabited_fin (a : Type) (n : nat) : inhabitedC (Fin.t (S n)).
+Instance inhabited_fin (n : nat) : inhabitedC (Fin.t (S n)).
 Proof. do 2 constructor. Defined.
 
 Instance inhabited_nat : inhabitedC nat.
