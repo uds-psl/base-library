@@ -1,169 +1,70 @@
-(* Inhabited types *)
+(** * Inhabited types *)
+
 Require Shared.Prelim.
 Require Import Coq.Vectors.Vector Coq.Vectors.Fin.
 Require Import FiniteTypes.FinTypes.
 
 Class inhabitedC (X : Type) :=
-  Inhabited
     {
-      default : X
+      default : X;
     }.
-
-
-Structure inhabitedType :=
-  InhabitedType
-    {
-      type :> Type;
-      class : inhabitedC type
-    }.
-
-Arguments InhabitedType type {class}.
-Existing Instance class | 0.
-
-Canonical Structure inhabitedType_CS (X : Type) {class : inhabitedC X} : inhabitedType := @InhabitedType X class.
-
-(*
-Section Test.
-  Variable x : inhabitedType.
-  Set Printing All.
-  Compute default : x.
-  Unset Printing All.
-End Test.
-*)
 
 Instance inhabited_unit : inhabitedC unit.
 Proof. do 2 constructor. Defined.
 
+Instance inhabited_True : inhabitedC True.
+Proof. do 2 constructor. Defined.
 
-Instance inhabited_inl (a b : Type) (inh_a : inhabitedC a) : inhabitedC (a + b).
+Instance inhabited_inl (A B : Type) (inh_a : inhabitedC A) : inhabitedC (A + B).
 Proof. constructor. left. apply default. Defined.
 
-Instance inhabited_inr (a b : Type) (inh_b : inhabitedC b) : inhabitedC (a + b).
+Instance inhabited_inr (A B : Type) (inh_B : inhabitedC B) : inhabitedC (A + B).
 Proof. constructor. right. apply default. Defined.
 
-Instance inhabited_option (a : Type) : inhabitedC (option a).
+Instance inhabited_option (A : Type) : inhabitedC (option A).
 Proof. constructor. right. Defined.
 
 Instance inhabited_bool : inhabitedC bool.
 Proof. do 2 constructor. Defined.
 
-Instance inhabited_list (a : Type) : inhabitedC (list a).
+Instance inhabited_list (A : Type) : inhabitedC (list A).
 Proof. do 2 constructor. Defined.
 
-Instance inhabited_vector (a : Type) (n : nat) (inh_a : inhabitedC a) : inhabitedC (Vector.t a n).
+Instance inhabited_vector (A : Type) (n : nat) (inh_A : inhabitedC A) : inhabitedC (Vector.t A n).
 Proof. constructor. eapply VectorDef.const. apply default. Defined.
 
-Instance inhabited_fin (a : Type) (n : nat) : inhabitedC (Fin.t (S n)).
+Instance inhabited_fin (A : Type) (n : nat) : inhabitedC (Fin.t (S n)).
 Proof. do 2 constructor. Defined.
 
 Instance inhabited_nat : inhabitedC nat.
 Proof. do 2 constructor. Defined.
 
+Instance inhabited_prod (A B : Type) : inhabitedC A -> inhabitedC B -> inhabitedC (A*B).
+Proof. intros ia ib. do 2 constructor; apply default. Defined.
 
-Instance inhabited_arrow (a b : Type) : inhabitedC b -> inhabitedC (a -> b).
+Instance inhabited_arrow (A B : Type) : inhabitedC B -> inhabitedC (A -> B).
 Proof. intros. constructor. intros _. apply default. Defined.
 
-Instance inhabited_arrow_empty (b : Type) : inhabitedC (Empty_set -> b).
+Instance inhabited_arrow_empty (B : Type) : inhabitedC (Empty_set -> B).
 Proof. intros. constructor. apply Empty_set_rect. Defined.
 
+Instance inhabited_arrow_sum (A B C : Type) : inhabitedC (A->C) -> inhabitedC (B->C) -> inhabitedC (A+B->C).
+Proof. intros iac ibc. constructor. intros [?|?]. now apply iac. now apply ibc. Defined.
 
+Instance inhabited_arrow_prod (A B C : Type) : inhabitedC (A->B) -> inhabitedC (A->C) -> inhabitedC (A->B*C).
+Proof. intros iab iac. constructor. intros a. constructor. now apply iab. now apply iac. Defined.
+
+
+(** Derive inhabitedC instances, if an instance of this type is a hypothesis *)
+Hint Extern 10 => match goal with
+                | [ H : ?X |- inhabitedC ?X ] => now econstructor
+                end : typeclass_instances.
 (*
-Section Test2.
-  Compute default : bool + bool.
-  Compute default : bool + nat.
-
-  Compute InhabitedType bool: inhabitedType.
-
-  Goal default = true.
-  Proof. cbn. reflexivity. Qed.
-    
-
-  Variable someFunction : inhabitedType -> inhabitedType.
-  Compute someFunction (InhabitedType nat).
-
-  (* Check, that inl and inr work *)
-  Variable (A : inhabitedType) (B : Type).
-  Compute someFunction A.
-
-  Compute someFunction (InhabitedType (A + B)).
-  Compute someFunction (InhabitedType (B + A)).
-
-  Compute default : nat + bool.
-End Test2.
+Section Test.
+  Variable lie : False.
+  Compute default : False.
+  Variable somebool : bool.
+  (* This should prefere the instance, not the variable. *)
+  Compute default : bool.
+End Test.
 *)
-
-
-(*
-Section Test3.
-  Let F := InhabitedType bool.
-
-  Require Import Shared.FiniteTypes.BasicFinTypes.
-
-  Check inhabitedC (eqType_X (FinTypes.type (FinType (EqType bool)))).
-  Eval simpl in inhabitedC (eqType_X (FinTypes.type (FinType (EqType bool)))).
-  
-  Program Definition G := InhabitedType (FinType (EqType bool)).
-  Compute default : G.
-
-  Compute default : F.
-
-  Lemma finInhabited_inhabited : @inhabitedC F.
-  Proof. auto. Qed.
-
-  Compute default : F.
-End Test3.
-*)
-
-Record inhabitedFinType :=
-  InhabitedFinType
-    {
-      inhabitedFinType_type :> finType;
-      inhabitedFinType_inhabited : inhabitedC inhabitedFinType_type;
-    }.
-Arguments InhabitedFinType X {class} : rename.
-
-Canonical Structure inhabitedFinType_CS {X : finType} {class: inhabitedC X} : inhabitedFinType := InhabitedFinType X.
-
-(*
-Section Test4.
-
-  Require Import Shared.FiniteTypes.BasicFinTypes.
-
-  Variable someFunction : inhabitedFinType -> nat.
-
-  Let F := InhabitedFinType (FinType (EqType bool)).
-
-  Compute default : F.
-  
-  Compute someFunction F.
-
-  Variable someFunction' : finType -> nat.
-
-  Compute someFunction' F.
-  
-End Test4.
-*)
-
-
-Hint Extern 4 =>  (* Improves type class inference *)
-match goal with
-| [  F : inhabitedFinType |- inhabitedC (eqType_X (FinTypes.type ?FF))] =>
-  apply inhabitedFinType_inhabited
-end : typeclass_instances.
-
-(*
-Section Test5.
-
-  Variable (F : inhabitedFinType).
-
-  Check F : finType.
-
-  Check inhabitedC (eqType_X (FinTypes.type (inhabitedFinType_type F))).
-  Eval simpl in inhabitedC (eqType_X (FinTypes.type (inhabitedFinType_type F))).
-
-  Check default : F.
-  Compute default : F.
-End Test5.
-*)
-
-Definition mk_inhabitedFin {X : finType} (x : X) := @InhabitedFinType X (@Inhabited X x).
