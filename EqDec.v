@@ -172,6 +172,9 @@ Canonical Structure eqType_CS X (A: eq_dec X) := EqType X.
 
 Existing Instance eqType_dec.
 
+(** Print the base type of [eqType] in the Canonical Structure. *)
+Arguments eqType_CS (X) {_}.
+
 Instance unit_eq_dec :
   eq_dec unit.
 Proof.

@@ -23,6 +23,9 @@ Existing Instance class | 0.
 
 Canonical Structure finType_CS (X : Type) {p : eq_dec X} {class : finTypeC (EqType X)} : finType := FinType (EqType X).
 
+(** Print the base type of [finType] in the Canonical Structure. *)
+Arguments finType_CS (X) {_ _}.
+
 Definition elem (F: finType) := @enum (type F) (class F).
 Hint Unfold elem.
 Hint Unfold class.
