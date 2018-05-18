@@ -1,4 +1,4 @@
-(* Library for injections, bijections, retracts and tight retracts *)
+(* Library for injections, bijections, and retracts  *)
 Require Import Shared.Base.
 
 
@@ -201,6 +201,11 @@ End Useful_Inversions.
  *
  * That informally means, that the injective function [f] can be reverted by the retract function [g].
  * Foramlly, for all values [x:A] and [y = f x], then [g y = Some x].  (Or: [forall x, g (f x) = Some x].)
+ *
+ * The retracts should also be "tight", which means that the retract function only reverts values in
+ * the image of [f]. Foramlly this means that whenever [g y = Some x], then also [y = f x]
+ *
+ * Altogether, we have that [forall x y, g y = Some x <-> y = f x].
  *)
 
 
@@ -208,106 +213,59 @@ Section Retract.
 
   Variable X Y : Type.
 
-  Definition retract (f : X -> Y) (g : Y -> option X) := forall x, g (f x) = Some x.
+  Definition retract (f : X -> Y) (g : Y -> option X) := forall x y, g y = Some x <-> y = f x.
 
   Class Retract :=
     {
       Retr_f : X -> Y;
       Retr_g : Y -> option X;
-      Retr_adj : retract Retr_f Retr_g;
+      Retr_retr : retract Retr_f Retr_g;
     }.
 
   Hypothesis I : Retract.
-
-  Definition retract_g_adjoint : forall x, Retr_g (Retr_f x) = Some x := Retr_adj.
-
-  Lemma retract_g_surjective : forall x, { y | Retr_g y = Some x }.
-  Proof. intros x. pose proof Retr_adj x. eauto. Defined.
-
-  Lemma retract_f_injective : forall x1 x2, Retr_f x1 = Retr_f x2 -> x1 = x2.
-  Proof.
-    intros x1 x2 H. enough (Some x1 = Some x2) as HE by now inv HE.
-    erewrite <- Retr_adj; eauto. rewrite H. apply Retr_adj.
-  Qed.
 
 End Retract.
 
 Arguments Retr_f { _ _ _ }.
 Arguments Retr_g { _ _ _ }.
 
-(*
- * An tight retract has the additional property, that the retract function only reverts values in the image of [f].
- * Foramlly this means that whenever [g y = Some x], then also [y = f x]
- * All properties of retracts hold automatically for tight retracts, since every tight retract "is" a retract.
- *)
-Section TightRetract.
+Section Retract_Properties.
 
   Variable X Y : Type.
 
-  Definition tight_retract (f : X -> Y) (g : Y -> option X) := forall x y, g y = Some x <-> y = f x.
+  Hypothesis I : Retract X Y.
 
-  Class TRetract :=
-    {
-      TRetr_f : X -> Y;
-      TRetr_g : Y -> option X;
-      TRetr_inv : tight_retract TRetr_f TRetr_g;
-    }.
+  Definition retract_g_adjoint : forall x, Retr_g (Retr_f x) = Some x.
+  Proof. intros. pose proof @Retr_retr _ _ I. hnf in H. now rewrite H. Qed.
 
-  Hypothesis I : TRetract.
+  Definition retract_g_inv : forall x y, Retr_g y = Some x -> y = Retr_f x.
+  Proof. intros. now apply Retr_retr. Qed.
 
-  Global Instance TRetract_Retract : Retract X Y :=
-    {|
-      Retr_f := TRetr_f;
-      Retr_g := TRetr_g;
-    |}.
-  Proof. abstract now intros x; apply TRetr_inv. Defined.
+  Lemma retract_g_surjective : forall x, { y | Retr_g y = Some x }.
+  Proof. intros x. pose proof retract_g_adjoint x. cbn in H. eauto. Defined.
 
-  Definition TRetr_inv' : forall x y, TRetr_g y = Some x -> y = TRetr_f x := ltac:(apply I).
+  Lemma tretract_f_injective : forall x1 x2, Retr_f x1 = Retr_f x2 -> x1 = x2.
+  Proof.
+    intros x1 x2 H.
+    enough (Some x1 = Some x2) by congruence.
+    erewrite <- !retract_g_adjoint.
+    now rewrite H.
+  Qed.
 
-End TightRetract.
-
-Arguments TRetr_f { _ _ _ }.
-Arguments TRetr_g { _ _ _ }.
-
-Coercion TRetract_Retract : TRetract >-> Retract.
+End Retract_Properties.
 
 
-(* The above instance [TRetract_Retract] that is also used as implcit coercion makes sure that we can
- * use tight retracts in place of normal retracts. *)
-
-Section TightRetract_InheritedProperties.
-
-  Variable X Y : Type.
-
-  Hypothesis I : TRetract X Y.
-
-  Definition tretract_g_adjoint : forall x, TRetr_g (TRetr_f x) = Some x := ltac:(intros x; now apply TRetr_inv).
-
-  (* Here we only apply lemmas of normal retracts!  The coercion is not used, but the instance [TRetract_Retract] *)
-  Lemma tretract_g_surjective : forall x, { y | TRetr_g y = Some x }.
-  Proof. intros x. pose proof Retr_adj x. cbn in H. eauto. Defined.
-
-  Lemma tretract_f_injective : forall x1 x2, TRetr_f x1 = TRetr_f x2 -> x1 = x2.
-  Proof. intros x1 x2 H. eapply retract_f_injective. cbn. eauto. Qed.
-
-End TightRetract_InheritedProperties.
-
-
-
-(* This tactic replaces all occurrences of [g (f x)] with [Some x] for (tight) retracts. *)
+(* This tactic replaces all occurrences of [g (f x)] with [Some x] for retracts. *)
 Ltac retract_adjoint :=
   match goal with
   | [ H : context [ Retr_g (Retr_f _) ] |- _ ] => rewrite retract_g_adjoint in H
   | [   |- context [ Retr_g (Retr_f _) ]     ] => rewrite retract_g_adjoint
-  | [ H : context [ TRetr_g (TRetr_f _) ] |- _ ] => rewrite tretract_g_adjoint in H
-  | [   |- context [ TRetr_g (TRetr_f _) ]     ] => rewrite tretract_g_adjoint
   end.
 
 
 
-
 (*
- * We can compose Compose (tight) retracts, as shown in the following commuting diagram
+ * We can compose Compose retracts, as shown in the following commuting diagram
  *
  *            f1        f2
  *      A --------> B --------> C
@@ -338,51 +296,33 @@ Section ComposeRetracts.
           | None => None
           end.
 
-  (* No instance, for obvious reasons... *)
-  Local Instance ComposeRetract (retr1 : Retract A B) (retr2 : Retract B C) : Retract A C :=
+  (* No instance (outside of this section), for obvious reasons... *)
+  Local Instance ComposeTRetract (retr1 : Retract A B) (retr2 : Retract B C) : Retract A C :=
     {|
       Retr_f := retr_comp_f Retr_f Retr_f;
       Retr_g := retr_comp_g Retr_g Retr_g;
     |}.
-  Proof. abstract now unfold retr_comp_f, retr_comp_g; intros a; do 2 retract_adjoint. Defined.
-
-
-  Local Instance ComposeTRetract (retr1 : TRetract A B) (retr2 : TRetract B C) : TRetract A C :=
-    {|
-      TRetr_f := retr_comp_f TRetr_f TRetr_f;
-      TRetr_g := retr_comp_g TRetr_g TRetr_g;
-    |}.
   Proof.
     abstract now
       unfold retr_comp_f, retr_comp_g; intros a c; split;
-      [intros H; destruct (TRetr_g c) as [ | ] eqn:E;
-       [ apply TRetr_inv in E as ->; now apply TRetr_inv in H as ->
+      [intros H; destruct (Retr_g c) as [ | ] eqn:E;
+       [ apply retract_g_inv in E as ->; now apply retract_g_inv in H as ->
        | congruence
        ]
       | intros ->; now do 2 retract_adjoint
       ].
-    (*
-    hnf. intros a c. split.
-    - intros H. destruct (TRetr_g c) as [b | ] eqn:E.
-      + apply TRetr_inv in E as ->. apply TRetr_inv in H as ->. auto.
-      + congruence.
-    - intros ->. now do 2 rewrite tretract_g_adjoint.
-     *)
   Defined.
 
 End ComposeRetracts.
 
 
-(* We can build a tight retract from an inversion, by applying [Some] in [g]. *)
-(* TODO/Note: To build a (normal) retract, we only need an injective function. *)
-
-Section Inversion_TRetract.
+Section Inversion_Retract.
   Variable A B : Type.
 
-  Global Instance Inversion_TRetract (inv : Inversion A B) : TRetract A B :=
+  Global Instance Inversion_Retract (inv : Inversion A B) : Retract A B :=
     {|
-      TRetr_f a := Inv_f a;
-      TRetr_g b := Some (Inv_g b);
+      Retr_f a := Inv_f a;
+      Retr_g b := Some (Inv_g b);
     |}.
   Proof.
     abstract now
@@ -390,54 +330,19 @@ Section Inversion_TRetract.
       [ inversion 1; now inverse
       | intros ->; now inverse
       ].
-    (*
-    hnf. intros a b. split.
-    - inversion 1. now inverse.
-    - intros ->. now inverse.
-     *)
   Defined.
 
-
-  (* Note:  We don't need to show that we can build a retract from an inversion,
-   * since we can build a retract from a tight retract from an inversion. *)
-
-End Inversion_TRetract.
+End Inversion_Retract.
 
 
 
 (** We define some other useful retracts, that do not correspond to inversions *)
-
-
 Section Usefull_Retracts.
 
   Variable (A B C D : Type).
 
 
   (** We can introduce an additional [Some] and use the identity as the retract function *)
-  Global Instance TRetract_option `{retr: TRetract A B} : TRetract A (option B) :=
-    {|
-      TRetr_f a := Some (TRetr_f a);
-      TRetr_g ob := match ob with
-                    | Some b => TRetr_g b
-                    | None => None
-                    end;
-    |}.
-  Proof.
-    abstract now
-      split;
-      [ intros H; destruct y as [b|];
-        [ now apply TRetr_inv in H as ->
-        | inv H
-        ]
-      | intros ->; now retract_adjoint
-      ].
-  (*
-    split.
-    - intros H. destruct y as [b|]; auto. now apply TRetr_inv' in H as ->. inv H.
-    - intros ->. now retract_adjoint.
-     *)
-  Defined.
-
   Global Instance Retract_option `{retr: Retract A B} : Retract A (option B) :=
     {|
       Retr_f a := Some (Retr_f a);
@@ -446,7 +351,16 @@ Section Usefull_Retracts.
                     | None => None
                     end;
     |}.
-  Proof. abstract now intros a; retract_adjoint. Defined.
+  Proof.
+    abstract now
+      split;
+      [ intros H; destruct y as [b|];
+        [ now apply retract_g_inv in H as ->
+        | inv H
+        ]
+      | intros ->; now retract_adjoint
+      ].
+  Defined.
 
   (** We can introduce an additional [inl] *)
 
@@ -457,25 +371,18 @@ Section Usefull_Retracts.
           | inr c => None
           end.
 
-  Global Instance TRetract_inl (retrAB : TRetract A B) : TRetract A (B + C) :=
-    {|
-      TRetr_f := retract_inl_f TRetr_f;
-      TRetr_g := retract_inl_g TRetr_g;
-    |}.
-  Proof.
-    abstract now
-      unfold retract_inl_f, retract_inl_g; hnf; intros x y; split;
-      [ destruct y as [a|b]; [ now intros -> % TRetr_inv | congruence ]
-      | intros ->; now retract_adjoint
-      ].
-  Defined.
-
-  Global Instance Retract_inl (retrAB : Retract A B) : Retract A (B + C) :=
+  Global Instance TRetract_inl (retrAB : Retract A B) : Retract A (B + C) :=
     {|
       Retr_f := retract_inl_f Retr_f;
       Retr_g := retract_inl_g Retr_g;
     |}.
-  Proof. abstract now intros a; cbn; now retract_adjoint. Defined.
+  Proof.
+    abstract now
+      unfold retract_inl_f, retract_inl_g; hnf; intros x y; split;
+      [ destruct y as [a|b]; [ now intros -> % retract_g_inv | congruence ]
+      | intros ->; now retract_adjoint
+      ].
+  Defined.
 
 
   (** The same for [inr] *)
@@ -487,25 +394,19 @@ Section Usefull_Retracts.
           | inl c => None
           end.
 
-  Global Instance TRetract_inr (retrAB : TRetract A B) : TRetract A (C + B) :=
-    {|
-      TRetr_f := retract_inr_f TRetr_f;
-      TRetr_g := retract_inr_g TRetr_g;
-    |}.
-  Proof.
-    abstract now
-      unfold retract_inr_f, retract_inr_g; hnf; intros x y; split;
-      [ destruct y as [a|b]; [ congruence | now intros -> % TRetr_inv ]
-      | intros ->; now retract_adjoint
-      ].
-  Defined.
-
   Global Instance Retract_inr (retrAB : Retract A B) : Retract A (C + B) :=
     {|
       Retr_f := retract_inr_f Retr_f;
       Retr_g := retract_inr_g Retr_g;
     |}.
-  Proof. abstract now intros a; cbn; now retract_adjoint. Defined.
+  Proof.
+    abstract now
+      unfold retract_inr_f, retract_inr_g; hnf; intros x y; split;
+      [ destruct y as [a|b]; [ congruence | now intros -> % retract_g_inv ]
+      | intros ->; now retract_adjoint
+      ].
+  Defined.
+
 
 
   (** We can map retracts over sums, similiary as we have done with inversions *)
@@ -535,96 +436,20 @@ Section Usefull_Retracts.
         Retr_f := retract_sum_f Retr_f Retr_f;
         Retr_g := retract_sum_g Retr_g Retr_g;
       |}.
-    Proof. abstract now unfold retract_sum_f, retract_sum_g; hnf; intros [a | b]; retract_adjoint. Defined.
-
-
-    (* Definition has to be copied again for tight retracts *)
-    Local Instance TRetract_sum (retr1 : TRetract A C) (retr2 : TRetract B D) : TRetract (A+B) (C+D) :=
-      {|
-        TRetr_f := retract_sum_f TRetr_f TRetr_f;
-        TRetr_g := retract_sum_g TRetr_g TRetr_g;
-      |}.
     Proof.
       abstract now
         unfold retract_sum_f, retract_sum_g; intros x y; split;
         [ intros H; destruct y as [c|d];
-          [ destruct (TRetr_g c) eqn:E1; inv H; f_equal; now apply TRetr_inv
-          | destruct (TRetr_g d) eqn:E1; inv H; f_equal; now apply TRetr_inv
+          [ destruct (Retr_g c) eqn:E1; inv H; f_equal; now apply retract_g_inv
+          | destruct (Retr_g d) eqn:E1; inv H; f_equal; now apply retract_g_inv
           ]
         | intros ->; destruct x as [a|b]; now retract_adjoint
         ].
-      (*
-      hnf. intros x y. split.
-      - intros H. destruct y as [c|d]; cbn in *.
-        + destruct (TRetr_g c) eqn:E1; inv H. f_equal. now apply TRetr_inv.
-        + destruct (TRetr_g d) eqn:E1; inv H. f_equal. now apply TRetr_inv.
-      - intros ->. destruct x as [a | b]; now retract_adjoint.
-       *)
     Defined.
 
   End Retract_sum.
 
 End Usefull_Retracts.
-
-
-
-(* We can build a tight retract for every retract where the target type is decidable. *)
-
-Section Retract_TRetract.
-  Variable (X : Type) (Y : eqType).
-  Hypothesis retr : Retract X Y.
-
-
-  (* We can decide weather a value is in the image of the injection *)
-  Global Instance retract_dec_in_image :
-    forall y, dec (exists x, Retr_f x = y).
-  Proof.
-    intros y. destruct (Retr_g y) as [x | ] eqn:E.
-    - decide (Retr_f x = y) as [<- | D].
-      + left. eauto.
-      + right. intros (x'&<-). enough (Some x' = Some x) by congruence.
-        erewrite <- retract_g_adjoint; eauto.
-    - right. intros (x&<-). rewrite retract_g_adjoint in E; eauto. congruence.
-  Qed.
-
-  Definition tretract_from_retr_g (g : Y -> option X) : Y -> option X :=
-    fun y => if Dec (exists x, Retr_f x = y) then Retr_g y else None.
-
-  Lemma retract_tretract : tight_retract Retr_f (tretract_from_retr_g Retr_g).
-    unfold tretract_from_retr_g. hnf. intros x. split.
-    - intros H. decide (exists x, Retr_f x = y) as [ (x'&<-) | D].
-      + rewrite retract_g_adjoint in H; auto. congruence.
-      + congruence.
-    - intros ->. decide (exists x', Retr_f x' = Retr_f x) as [ (x'&Hx') | D].
-      + rewrite retract_g_adjoint; auto.
-      + contradict D. eauto.
-  Qed.
-
-  (* No instance here, or [typeclasses eauto] could cycle between [TRetract_Retract] and [Retract_TRetract] *)
-  Local Instance Retract_TRetract : TRetract X Y.
-  Proof. econstructor. apply retract_tretract. Defined.
-
-End Retract_TRetract.
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 
