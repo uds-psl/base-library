@@ -65,32 +65,28 @@ Section Useful_Inversions.
   (* The existence of inversions is a equivalence relation. *)
   Section Inversion_Equivalence.
 
-    Global Program Instance Inversion_Id : Inversion A A :=
+    Global Instance Inversion_Id : Inversion A A :=
       {|
         Inv_f := id;
         Inv_g := id;
       |}.
-    Solve All Obligations with hnf; auto.
+    Proof. all: abstract firstorder. Defined.
 
     (* This must not be an Instance, because this would create a loop within [typeclasses eauto] *)
-    Program Definition Inversion_Comp (I1 : Inversion A B) (I2 : Inversion B C) : Inversion A C :=
+    Local Instance Inversion_Comp (I1 : Inversion A B) (I2 : Inversion B C) : Inversion A C :=
       {|
         Inv_f a := Inv_f (Inv_f a);
         Inv_g c := Inv_g (Inv_g c);
       |}.
-    (* XXX: Why doesn't this solve the obligations? *)
-    Solve All Obligations with now (hnf; intuition; now do 2 inverse).
-    Obligation 1. hnf; intuition; now do 2 inverse. Qed.
-    Obligation 2. hnf; intuition; now do 2 inverse. Qed.
+    Proof. all: abstract now hnf; firstorder; do 2 inverse. Defined.
 
-
-    Global Program Definition Inversion_Symmetric (I : Inversion A B) : Inversion B A :=
+    Local Instance Inversion_Symmetric (I : Inversion A B) : Inversion B A :=
       {|
         Inv_f := fun a => Inv_g a;
         Inv_g := fun b => Inv_f b;
       |}.
-    Obligation 1. hnf; intuition; now inverse. Qed.
-    Obligation 2. hnf; intuition; now inverse. Qed.
+    Proof. all: abstract now hnf; firstorder; inverse. Defined.
+
 
   End Inversion_Equivalence.
 
@@ -101,7 +97,7 @@ Section Useful_Inversions.
      * A + B   <---->  C + D
      *)
 
-    Global Program Instance Inversion_sum (I1 : Inversion A C) (I2 : Inversion B D) : Inversion (A+B) (C+D) :=
+    Global Instance Inversion_sum (I1 : Inversion A C) (I2 : Inversion B D) : Inversion (A+B) (C+D) :=
       {|
         Inv_f x := match x with
                    | inl a => inl (Inv_f a)
@@ -112,10 +108,8 @@ Section Useful_Inversions.
                    | inr d => inr (Inv_g d)
                    end;
       |}.
-    Next Obligation. hnf; intros [x|y]; f_equal; now inverse. Qed.
-    Next Obligation. hnf; intros [x|y]; f_equal; now inverse. Qed.
-    
-    
+    Proof. all: abstract now hnf; intros [x|y]; f_equal; inverse. Defined.
+
   End Inversion_sum.
 
   Section Inversion_sum_swap.
@@ -125,7 +119,7 @@ Section Useful_Inversions.
      *)
 
     (* No Instance because it could be applyed many times *)
-    Global Program Definition Inversion_sum_swap : Inversion (A + B) (B + A) :=
+    Local Instance Inversion_sum_swap : Inversion (A + B) (B + A) :=
       {|
         Inv_f x := match x with
                    | inl a => inr a
@@ -136,30 +130,27 @@ Section Useful_Inversions.
                    | inr b => inl b
                    end;
       |}.
-    Next Obligation. hnf; intros [x|y]; f_equal; now inverse. Qed.
-    Next Obligation. hnf; intros [x|y]; f_equal; now inverse. Qed.
-    
+    Proof. all: abstract now hnf; intros [x|y]; f_equal; inverse. Defined.
+
   End Inversion_sum_swap.
-  
+ 
   Section Inversion_sum_Empty_set.
 
-    Global Program Instance Inversion_sum_Empty : Inversion (A + Empty_set) A :=
+    Global Instance Inversion_sum_Empty : Inversion (A + Empty_set) A :=
       {|
-        Inv_f x := match x with
+        Inv_f x := match x : A + Empty_set with
                    | inl a => a
                    | inr e => Empty_set_rect _ e
                    end;
         Inv_g a := inl a;
       |}.
-    Next Obligation. hnf. now intros [ x | [] ]. Qed.
-    Next Obligation. hnf. auto. Qed.
-    
-    
+    Proof. abstract now hnf; intros [ x | [] ]. abstract now hnf; auto. Defined.
+
   End Inversion_sum_Empty_set.
 
   Section Inversion_Option_Unit.
 
-    Global Program Instance Inversion_Option_Unit : Inversion (option A) (A + unit) :=
+    Global Instance Inversion_Option_Unit : Inversion (option A) (A + unit) :=
       {|
         Inv_f x := match x with
                    | Some y => inl y
@@ -170,9 +161,8 @@ Section Useful_Inversions.
                    | inr _ => None
                    end;
       |}.
-    Next Obligation. hnf. now intros [ a | ]. Qed.
-    Next Obligation. hnf. now intros [ a | [] ]. Qed.
-    
+    Proof. abstract now hnf; intros [ a | ]. abstract now hnf; intros [ a | [] ]. Defined.
+
   End Inversion_Option_Unit.
 
 
@@ -180,19 +170,16 @@ Section Useful_Inversions.
     Variable f : A -> A.
     Hypothesis f_inv : forall a, f (f a) = a.
 
-    Program Definition Inversion_Involution : Inversion A A :=
+    Local Instance Inversion_Involution : Inversion A A :=
       {|
         Inv_f := f;
         Inv_g := f;
       |}.
+    Proof. all: abstract now auto. Defined.
 
   End Inversion_Involution.
 
 End Useful_Inversions.
-
-
-
-
 
 
 
@@ -206,9 +193,9 @@ End Useful_Inversions.
  *
  *          f
  *      A -----> B
- *      |      / 
+ *      |      /
  * Some |     / g
- *      |    / 
+ *      |    /
  *     \|/ |/_
  *    option A
  *
@@ -268,12 +255,12 @@ Section TightRetract.
 
   Hypothesis I : TRetract.
 
-  Global Program Instance TRetract_Retract : Retract X Y :=
+  Global Instance TRetract_Retract : Retract X Y :=
     {|
       Retr_f := TRetr_f;
       Retr_g := TRetr_g;
     |}.
-  Next Obligation. hnf. intros x. now apply TRetr_inv. Qed.
+  Proof. abstract now intros x; apply TRetr_inv. Defined.
 
   Definition TRetr_inv' : forall x y, TRetr_g y = Some x -> y = TRetr_f x := ltac:(apply I).
 
@@ -318,7 +305,7 @@ Ltac retract_adjoint :=
 
 
 
-  
+
 (*
  * We can compose Compose (tight) retracts, as shown in the following commuting diagram
  *
@@ -333,7 +320,7 @@ Ltac retract_adjoint :=
  *     \|/ |/_     \|/ |/_
  *    option A <--- option B
  *            map g1
- *   
+ *
  *
  * Where [map g1] is the function that takes an option [x : option B] and applys [Some] and [g1] if it is [Some],
  * and else returns [None].
@@ -344,35 +331,44 @@ Ltac retract_adjoint :=
 Section ComposeRetracts.
   Variable A B C : Type.
 
+  Definition retr_comp_f (f1 : A -> B) (f2 : B -> C) : A -> C := fun a => f2 (f1 a).
+  Definition retr_comp_g (g1 : B -> option A) (g2 : C -> option B) :=
+    fun c => match g2 c with
+          | Some b => g1 b
+          | None => None
+          end.
+
   (* No instance, for obvious reasons... *)
-  Global Program Definition ComposeRetract (retr1 : Retract A B) (retr2 : Retract B C) : Retract A C :=
+  Local Instance ComposeRetract (retr1 : Retract A B) (retr2 : Retract B C) : Retract A C :=
     {|
-      Retr_f a := Retr_f (Retr_f a);
-      Retr_g c := match Retr_g c with
-                  | Some b => Retr_g b
-                  | None => None
-                  end;
+      Retr_f := retr_comp_f Retr_f Retr_f;
+      Retr_g := retr_comp_g Retr_g Retr_g;
     |}.
-  Next Obligation. hnf. intros a. now do 2 rewrite retract_g_adjoint. Qed.
+  Proof. abstract now unfold retr_comp_f, retr_comp_g; intros a; do 2 retract_adjoint. Defined.
 
 
-  (* We have to copy the definition again for tight retracts, because we use different structures *)
-
-  Global Program Definition ComposeTRetract (retr1 : TRetract A B) (retr2 : TRetract B C) : TRetract A C :=
+  Local Instance ComposeTRetract (retr1 : TRetract A B) (retr2 : TRetract B C) : TRetract A C :=
     {|
-      TRetr_f a := TRetr_f (TRetr_f a);
-      TRetr_g c := match TRetr_g c with
-                  | Some b => TRetr_g b
-                  | None => None
-                  end;
+      TRetr_f := retr_comp_f TRetr_f TRetr_f;
+      TRetr_g := retr_comp_g TRetr_g TRetr_g;
     |}.
-  Next Obligation.
+  Proof.
+    abstract now
+      unfold retr_comp_f, retr_comp_g; intros a c; split;
+      [intros H; destruct (TRetr_g c) as [ | ] eqn:E;
+       [ apply TRetr_inv in E as ->; now apply TRetr_inv in H as ->
+       | congruence
+       ]
+      | intros ->; now do 2 retract_adjoint
+      ].
+    (*
     hnf. intros a c. split.
     - intros H. destruct (TRetr_g c) as [b | ] eqn:E.
       + apply TRetr_inv in E as ->. apply TRetr_inv in H as ->. auto.
       + congruence.
     - intros ->. now do 2 rewrite tretract_g_adjoint.
-  Qed.
+     *)
+  Defined.
 
 End ComposeRetracts.
 
@@ -383,16 +379,24 @@ End ComposeRetracts.
 Section Inversion_TRetract.
   Variable A B : Type.
 
-  Global Program Instance Inversion_TRetract (inv : Inversion A B) : TRetract A B :=
+  Global Instance Inversion_TRetract (inv : Inversion A B) : TRetract A B :=
     {|
       TRetr_f a := Inv_f a;
       TRetr_g b := Some (Inv_g b);
     |}.
-  Next Obligation.
+  Proof.
+    abstract now
+      hnf; intros a b; split;
+      [ inversion 1; now inverse
+      | intros ->; now inverse
+      ].
+    (*
     hnf. intros a b. split.
     - inversion 1. now inverse.
     - intros ->. now inverse.
-  Qed.
+     *)
+  Defined.
+
 
   (* Note:  We don't need to show that we can build a retract from an inversion,
    * since we can build a retract from a tight retract from an inversion. *)
@@ -410,7 +414,7 @@ Section Usefull_Retracts.
 
 
   (** We can introduce an additional [Some] and use the identity as the retract function *)
-  Global Program Instance TRetract_option `{retr: TRetract A B} : TRetract A (option B) :=
+  Global Instance TRetract_option `{retr: TRetract A B} : TRetract A (option B) :=
     {|
       TRetr_f a := Some (TRetr_f a);
       TRetr_g ob := match ob with
@@ -418,13 +422,23 @@ Section Usefull_Retracts.
                     | None => None
                     end;
     |}.
-  Next Obligation.
+  Proof.
+    abstract now
+      split;
+      [ intros H; destruct y as [b|];
+        [ now apply TRetr_inv in H as ->
+        | inv H
+        ]
+      | intros ->; now retract_adjoint
+      ].
+  (*
     split.
     - intros H. destruct y as [b|]; auto. now apply TRetr_inv' in H as ->. inv H.
     - intros ->. now retract_adjoint.
-  Qed.
-  
-  Global Program Instance Retract_option `{retr: Retract A B} : Retract A (option B) :=
+     *)
+  Defined.
+
+  Global Instance Retract_option `{retr: Retract A B} : Retract A (option B) :=
     {|
       Retr_f a := Some (Retr_f a);
       Retr_g ob := match ob with
@@ -432,112 +446,121 @@ Section Usefull_Retracts.
                     | None => None
                     end;
     |}.
-  Next Obligation. intros a. now retract_adjoint. Qed.
+  Proof. abstract now intros a; retract_adjoint. Defined.
 
   (** We can introduce an additional [inl] *)
-  Global Program Instance TRetract_inl : TRetract A (A + B) :=
-    {|
-      TRetr_f a := inl a;
-      TRetr_g c := match c with
-                   | inl a => Some a
-                   | inr b => None
-                   end;
-    |}.
-  Next Obligation.
-    hnf. intros a x. split.
-    - intros H. destruct x; now inv H.
-    - now intros ->.
-  Qed.
 
-  Global Program Instance Retract_inl (retrAB : Retract A B) : Retract A (B + C) :=
+  Definition retract_inl_f (f : A -> B) : A -> (B + C) := fun a => inl (f a).
+  Definition retract_inl_g (g : B -> option A) : B+C -> option A :=
+    fun x => match x with
+          | inl b => g b
+          | inr c => None
+          end.
+
+  Global Instance TRetract_inl (retrAB : TRetract A B) : TRetract A (B + C) :=
     {|
-      Retr_f a := inl (Retr_f a);
-      Retr_g x := match x with
-                  | inl b => Retr_g b
-                  | inr c => None
-                  end;
+      TRetr_f := retract_inl_f TRetr_f;
+      TRetr_g := retract_inl_g TRetr_g;
     |}.
-  Next Obligation. intros a. now retract_adjoint. Qed.
-  
+  Proof.
+    abstract now
+      unfold retract_inl_f, retract_inl_g; hnf; intros x y; split;
+      [ destruct y as [a|b]; [ now intros -> % TRetr_inv | congruence ]
+      | intros ->; now retract_adjoint
+      ].
+  Defined.
+
+  Global Instance Retract_inl (retrAB : Retract A B) : Retract A (B + C) :=
+    {|
+      Retr_f := retract_inl_f Retr_f;
+      Retr_g := retract_inl_g Retr_g;
+    |}.
+  Proof. abstract now intros a; cbn; now retract_adjoint. Defined.
+
+
   (** The same for [inr] *)
-  
-  Global Program Instance Retract_inr (retrAB : Retract A B) : Retract A (C + B) :=
+
+  Definition retract_inr_f (f : A -> B) : A -> (C + B) := fun a => inr (f a).
+  Definition retract_inr_g (g : B -> option A) : C+B -> option A :=
+    fun x => match x with
+          | inr b => g b
+          | inl c => None
+          end.
+
+  Global Instance TRetract_inr (retrAB : TRetract A B) : TRetract A (C + B) :=
     {|
-      Retr_f a := inr (Retr_f a);
-      Retr_g x := match x with
-                  | inl c => None
-                  | inr b => Retr_g b
-                  end;
+      TRetr_f := retract_inr_f TRetr_f;
+      TRetr_g := retract_inr_g TRetr_g;
     |}.
-  Next Obligation. intros a. now retract_adjoint. Qed.
-  
-  Global Program Instance TRetract_inr (retrAB : TRetract A B) : TRetract A (C + B) :=
+  Proof.
+    abstract now
+      unfold retract_inr_f, retract_inr_g; hnf; intros x y; split;
+      [ destruct y as [a|b]; [ congruence | now intros -> % TRetr_inv ]
+      | intros ->; now retract_adjoint
+      ].
+  Defined.
+
+  Global Instance Retract_inr (retrAB : Retract A B) : Retract A (C + B) :=
     {|
-      TRetr_f a := inr (TRetr_f a);
-      TRetr_g x := match x with
-                  | inr b => TRetr_g b
-                  | inl c => None
-                  end;
+      Retr_f := retract_inr_f Retr_f;
+      Retr_g := retract_inr_g Retr_g;
     |}.
-  Next Obligation.
-    split.
-    - intros. destruct y as [a|b]; cbn. inv H. now apply TRetr_inv' in H as ->.
-    - intros ->. now retract_adjoint.
-  Qed.
+  Proof. abstract now intros a; cbn; now retract_adjoint. Defined.
 
 
-  (*
-   * We can map retracts over sums, similiary as we have done with inversions
-   *
-   *)
+  (** We can map retracts over sums, similiary as we have done with inversions *)
 
   Section Retract_sum.
 
-    Program Definition Retract_sum (retr1 : Retract A C) (retr2 : Retract B D) : Retract (A+B) (C+D) :=
+    Definition retract_sum_f (f1: A -> C) (f2: B -> D) : A+B -> C+D :=
+      fun x => match x with
+            | inl a => inl (f1 a)
+            | inr b => inr (f2 b)
+            end.
+
+    Definition retract_sum_g (g1: C -> option A) (g2: D -> option B) : C+D -> option (A+B) :=
+      fun y => match y with
+            | inl c => match g1 c with
+                      | Some a => Some (inl a)
+                      | None => None
+                      end
+            | inr d => match g2 d with
+                      | Some b => Some (inr b)
+                      | None => None
+                      end
+            end.
+
+    Local Instance Retract_sum (retr1 : Retract A C) (retr2 : Retract B D) : Retract (A+B) (C+D) :=
       {|
-        Retr_f x := match x with
-                     | inl a => inl (Retr_f a)
-                     | inr b => inr (Retr_f b)
-                     end;
-        Retr_g y := match y with
-                     | inl c => match Retr_g c with
-                               | Some a => Some (inl a)
-                               | None => None
-                               end
-                     | inr d => match Retr_g d with
-                               | Some b => Some (inr b)
-                               | None => None
-                               end
-                     end;
+        Retr_f := retract_sum_f Retr_f Retr_f;
+        Retr_g := retract_sum_g Retr_g Retr_g;
       |}.
-    Next Obligation. intros [a | b]; now retract_adjoint. Qed.
+    Proof. abstract now unfold retract_sum_f, retract_sum_g; hnf; intros [a | b]; retract_adjoint. Defined.
 
 
     (* Definition has to be copied again for tight retracts *)
-    Program Definition TRetract_sum (retr1 : TRetract A C) (retr2 : TRetract B D) : TRetract (A+B) (C+D) :=
+    Local Instance TRetract_sum (retr1 : TRetract A C) (retr2 : TRetract B D) : TRetract (A+B) (C+D) :=
       {|
-        TRetr_f x := match x with
-                     | inl a => inl (TRetr_f a)
-                     | inr b => inr (TRetr_f b)
-                     end;
-        TRetr_g y := match y with
-                     | inl c => match TRetr_g c with
-                               | Some a => Some (inl a)
-                               | None => None
-                               end
-                     | inr d => match TRetr_g d with
-                               | Some b => Some (inr b)
-                               | None => None
-                               end
-                     end;
+        TRetr_f := retract_sum_f TRetr_f TRetr_f;
+        TRetr_g := retract_sum_g TRetr_g TRetr_g;
       |}.
-    Next Obligation.
+    Proof.
+      abstract now
+        unfold retract_sum_f, retract_sum_g; intros x y; split;
+        [ intros H; destruct y as [c|d];
+          [ destruct (TRetr_g c) eqn:E1; inv H; f_equal; now apply TRetr_inv
+          | destruct (TRetr_g d) eqn:E1; inv H; f_equal; now apply TRetr_inv
+          ]
+        | intros ->; destruct x as [a|b]; now retract_adjoint
+        ].
+      (*
       hnf. intros x y. split.
       - intros H. destruct y as [c|d]; cbn in *.
         + destruct (TRetr_g c) eqn:E1; inv H. f_equal. now apply TRetr_inv.
         + destruct (TRetr_g d) eqn:E1; inv H. f_equal. now apply TRetr_inv.
       - intros ->. destruct x as [a | b]; now retract_adjoint.
-    Qed.
+       *)
+    Defined.
 
   End Retract_sum.
 
@@ -550,8 +573,8 @@ End Usefull_Retracts.
 Section Retract_TRetract.
   Variable (X : Type) (Y : eqType).
   Hypothesis retr : Retract X Y.
-  
-  
+
+
   (* We can decide weather a value is in the image of the injection *)
   Global Instance retract_dec_in_image :
     forall y, dec (exists x, Retr_f x = y).
@@ -564,15 +587,11 @@ Section Retract_TRetract.
     - right. intros (x&<-). rewrite retract_g_adjoint in E; eauto. congruence.
   Qed.
 
+  Definition tretract_from_retr_g (g : Y -> option X) : Y -> option X :=
+    fun y => if Dec (exists x, Retr_f x = y) then Retr_g y else None.
 
-  (* No instance here, or [typeclasses eauto] could cycle between [TRetract_Retract] and [Retract_TRetract] *)
-  Program Definition Retract_TRetract : TRetract X Y :=
-    {|
-      TRetr_f x := Retr_f x;
-      TRetr_g y := if Dec (exists x, Retr_f x = y) then Retr_g y else None;
-    |}.
-  Next Obligation.
-    split.
+  Lemma retract_tretract : tight_retract Retr_f (tretract_from_retr_g Retr_g).
+    unfold tretract_from_retr_g. hnf. intros x. split.
     - intros H. decide (exists x, Retr_f x = y) as [ (x'&<-) | D].
       + rewrite retract_g_adjoint in H; auto. congruence.
       + congruence.
@@ -580,6 +599,10 @@ Section Retract_TRetract.
       + rewrite retract_g_adjoint; auto.
       + contradict D. eauto.
   Qed.
+
+  (* No instance here, or [typeclasses eauto] could cycle between [TRetract_Retract] and [Retract_TRetract] *)
+  Local Instance Retract_TRetract : TRetract X Y.
+  Proof. econstructor. apply retract_tretract. Defined.
 
 End Retract_TRetract.
 
@@ -636,16 +659,16 @@ Section Inverse_Injective.
   Lemma left_inv_inj (f : X -> Y) (g : Y -> X) : left_inverse f g -> injective f.
   Proof.
     intros HInv. hnf in *. intros x1 x2 Heq.
-    enough (g (f x1) = g (f x2)) as ?L by now rewrite !HInv in L.
-    now f_equal.
+    enough (g (f x1) = g (f x2)) as L by now rewrite !HInv in L.
+    f_equal. assumption.
   Qed.
 
-  Global Program Instance Inversion_Injection (inv : Inversion X Y) : Injection X Y :=
+  Global Instance Inversion_Injection (inv : Inversion X Y) : Injection X Y :=
     {|
       Inj_f x := Inv_f x;
     |}.
-  Next Obligation. eapply left_inv_inj, Inv_inv_left. Qed.
-  
+  Proof. abstract now eapply left_inv_inj, Inv_inv_left. Defined.
+
 End Inverse_Injective.
 
 Coercion Inversion_Injection : Inversion >-> Injection.
@@ -659,17 +682,17 @@ Ltac inj_subst :=
 Section Useful_Injections.
   Variable A B C : Type.
 
-  Global Program Instance Injection_Id : Injection A A :=
+  Global Instance Injection_Id : Injection A A :=
     {|
       Inj_f a := a;
     |}.
-  Next Obligation. hnf. auto. Qed.
+  Proof. abstract now hnf; auto. Defined.
 
-  Global Program Instance Injection_Compose (inj1 : Injection A B) (inj2 : Injection B C) : Injection A C :=
+  Global Instance Injection_Compose (inj1 : Injection A B) (inj2 : Injection B C) : Injection A C :=
     {|
       Inj_f a := Inj_f (Inj_f a);
     |}.
-  Next Obligation. hnf. intros a1 a2 H. now do 2 inj_subst. Qed.
+  Proof. abstract now hnf; intros; do 2 inj_subst. Defined.
 
 
 End Useful_Injections.
