@@ -489,6 +489,25 @@ Section Usefull_Retracts.
 
   Section Retract_sum.
 
+    Program Definition Retract_sum (retr1 : Retract A C) (retr2 : Retract B D) : Retract (A+B) (C+D) :=
+      {|
+        Retr_f x := match x with
+                     | inl a => inl (Retr_f a)
+                     | inr b => inr (Retr_f b)
+                     end;
+        Retr_g y := match y with
+                     | inl c => match Retr_g c with
+                               | Some a => Some (inl a)
+                               | None => None
+                               end
+                     | inr d => match Retr_g d with
+                               | Some b => Some (inr b)
+                               | None => None
+                               end
+                     end;
+      |}.
+    Next Obligation. destruct x as [a | b]; now retract_adjoint. Qed.
+
 
     (* Definition has to be copied again for tight retracts *)
     Program Definition TRetract_sum (retr1 : TRetract A C) (retr2 : TRetract B D) : TRetract (A+B) (C+D) :=
@@ -513,7 +532,7 @@ Section Usefull_Retracts.
       - intros H. destruct y as [c|d]; cbn in *.
         + destruct (TRetr_g c) eqn:E1; inv H. f_equal. now apply TRetr_inv.
         + destruct (TRetr_g d) eqn:E1; inv H. f_equal. now apply TRetr_inv.
-      - intros ->. destruct x as [a | b]; now rewrite tretract_g_adjoint.
+      - intros ->. destruct x as [a | b]; now retract_adjoint.
     Qed.
 
   End Retract_sum.
