@@ -221,11 +221,13 @@ Section Retract.
 
   Variable X Y : Type.
 
+  Definition retract (f : X -> Y) (g : Y -> option X) := forall x, g (f x) = Some x.
+
   Class Retract :=
     {
       Retr_f : X -> Y;
       Retr_g : Y -> option X;
-      Retr_adj : forall x, Retr_g (Retr_f x) = Some x;
+      Retr_adj : retract Retr_f Retr_g;
     }.
 
   Hypothesis I : Retract.
@@ -255,11 +257,13 @@ Section TightRetract.
 
   Variable X Y : Type.
 
+  Definition tight_retract (f : X -> Y) (g : Y -> option X) := forall x y, g y = Some x <-> y = f x.
+
   Class TRetract :=
     {
       TRetr_f : X -> Y;
       TRetr_g : Y -> option X;
-      TRetr_inv : forall x y, TRetr_g y = Some x <-> y = TRetr_f x;
+      TRetr_inv : tight_retract TRetr_f TRetr_g;
     }.
 
   Hypothesis I : TRetract.
@@ -269,7 +273,7 @@ Section TightRetract.
       Retr_f := TRetr_f;
       Retr_g := TRetr_g;
     |}.
-  Next Obligation. now apply TRetr_inv. Qed.
+  Next Obligation. hnf. intros x. now apply TRetr_inv. Qed.
 
   Definition TRetr_inv' : forall x y, TRetr_g y = Some x -> y = TRetr_f x := ltac:(apply I).
 
@@ -349,7 +353,7 @@ Section ComposeRetracts.
                   | None => None
                   end;
     |}.
-  Next Obligation. now do 2 rewrite retract_g_adjoint. Qed.
+  Next Obligation. hnf. intros a. now do 2 rewrite retract_g_adjoint. Qed.
 
 
   (* We have to copy the definition again for tight retracts, because we use different structures *)
@@ -363,8 +367,8 @@ Section ComposeRetracts.
                   end;
     |}.
   Next Obligation.
-    split.
-    - intros H. destruct (TRetr_g y) as [b | ] eqn:E.
+    hnf. intros a c. split.
+    - intros H. destruct (TRetr_g c) as [b | ] eqn:E.
       + apply TRetr_inv in E as ->. apply TRetr_inv in H as ->. auto.
       + congruence.
     - intros ->. now do 2 rewrite tretract_g_adjoint.
@@ -385,7 +389,7 @@ Section Inversion_TRetract.
       TRetr_g b := Some (Inv_g b);
     |}.
   Next Obligation.
-    split.
+    hnf. intros a b. split.
     - inversion 1. now inverse.
     - intros ->. now inverse.
   Qed.
@@ -428,7 +432,7 @@ Section Usefull_Retracts.
                     | None => None
                     end;
     |}.
-  Next Obligation. now retract_adjoint. Qed.
+  Next Obligation. intros a. now retract_adjoint. Qed.
 
   (** We can introduce an additional [inl] *)
   Global Program Instance TRetract_inl : TRetract A (A + B) :=
@@ -440,8 +444,8 @@ Section Usefull_Retracts.
                    end;
     |}.
   Next Obligation.
-    split.
-    - intros H. destruct y; now inv H.
+    hnf. intros a x. split.
+    - intros H. destruct x; now inv H.
     - now intros ->.
   Qed.
 
@@ -453,7 +457,7 @@ Section Usefull_Retracts.
                   | inr c => None
                   end;
     |}.
-  Next Obligation. now retract_adjoint. Qed.
+  Next Obligation. intros a. now retract_adjoint. Qed.
   
   (** The same for [inr] *)
   
@@ -465,7 +469,7 @@ Section Usefull_Retracts.
                   | inr b => Retr_g b
                   end;
     |}.
-  Next Obligation. now retract_adjoint. Qed.
+  Next Obligation. intros a. now retract_adjoint. Qed.
   
   Global Program Instance TRetract_inr (retrAB : TRetract A B) : TRetract A (C + B) :=
     {|
@@ -506,7 +510,7 @@ Section Usefull_Retracts.
                                end
                      end;
       |}.
-    Next Obligation. destruct x as [a | b]; now retract_adjoint. Qed.
+    Next Obligation. intros [a | b]; now retract_adjoint. Qed.
 
 
     (* Definition has to be copied again for tight retracts *)
@@ -528,7 +532,7 @@ Section Usefull_Retracts.
                      end;
       |}.
     Next Obligation.
-      split.
+      hnf. intros x y. split.
       - intros H. destruct y as [c|d]; cbn in *.
         + destruct (TRetr_g c) eqn:E1; inv H. f_equal. now apply TRetr_inv.
         + destruct (TRetr_g d) eqn:E1; inv H. f_equal. now apply TRetr_inv.
