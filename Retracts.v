@@ -244,7 +244,7 @@ Section Retract_Properties.
   Lemma retract_g_surjective : forall x, { y | Retr_g y = Some x }.
   Proof. intros x. pose proof retract_g_adjoint x. cbn in H. eauto. Defined.
 
-  Lemma tretract_f_injective : forall x1 x2, Retr_f x1 = Retr_f x2 -> x1 = x2.
+  Lemma retract_f_injective : forall x1 x2, Retr_f x1 = Retr_f x2 -> x1 = x2.
   Proof.
     intros x1 x2 H.
     enough (Some x1 = Some x2) by congruence.
