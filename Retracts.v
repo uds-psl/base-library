@@ -94,14 +94,14 @@ Section Useful_Inversions.
 
   End Inversion_Equivalence.
 
-  Section Inversion_Sum.
+  Section Inversion_sum.
 
     (*
      * A <-> C         B <-> D
      * A + B   <---->  C + D
      *)
 
-    Global Program Instance Inversion_Sum (I1 : Inversion A C) (I2 : Inversion B D) : Inversion (A+B) (C+D) :=
+    Global Program Instance Inversion_sum (I1 : Inversion A C) (I2 : Inversion B D) : Inversion (A+B) (C+D) :=
       {|
         Inv_f x := match x with
                    | inl a => inl (Inv_f a)
@@ -116,16 +116,16 @@ Section Useful_Inversions.
     Next Obligation. hnf; intros [x|y]; f_equal; now inverse. Qed.
     
     
-  End Inversion_Sum.
+  End Inversion_sum.
 
-  Section Inversion_Sum_Swap.
+  Section Inversion_sum_swap.
 
     (*
      * A + B <-> B + A
      *)
 
     (* No Instance because it could be applyed many times *)
-    Global Program Definition Inversion_Sum_Swap : Inversion (A + B) (B + A) :=
+    Global Program Definition Inversion_sum_swap : Inversion (A + B) (B + A) :=
       {|
         Inv_f x := match x with
                    | inl a => inr a
@@ -139,11 +139,11 @@ Section Useful_Inversions.
     Next Obligation. hnf; intros [x|y]; f_equal; now inverse. Qed.
     Next Obligation. hnf; intros [x|y]; f_equal; now inverse. Qed.
     
-  End Inversion_Sum_Swap.
+  End Inversion_sum_swap.
   
-  Section Inversion_Sum_Empty_set.
+  Section Inversion_sum_Empty_set.
 
-    Global Program Instance Inversion_Sum_Empty : Inversion (A + Empty_set) A :=
+    Global Program Instance Inversion_sum_Empty : Inversion (A + Empty_set) A :=
       {|
         Inv_f x := match x with
                    | inl a => a
@@ -155,7 +155,7 @@ Section Useful_Inversions.
     Next Obligation. hnf. auto. Qed.
     
     
-  End Inversion_Sum_Empty_set.
+  End Inversion_sum_Empty_set.
 
   Section Inversion_Option_Unit.
 
@@ -487,11 +487,11 @@ Section Usefull_Retracts.
    *
    *)
 
-  Section RetractSum.
+  Section Retract_sum.
 
 
     (* Definition has to be copied again for tight retracts *)
-    Program Definition TRetract_Sum (retr1 : TRetract A C) (retr2 : TRetract B D) : TRetract (A+B) (C+D) :=
+    Program Definition TRetract_sum (retr1 : TRetract A C) (retr2 : TRetract B D) : TRetract (A+B) (C+D) :=
       {|
         TRetr_f x := match x with
                      | inl a => inl (TRetr_f a)
@@ -516,7 +516,7 @@ Section Usefull_Retracts.
       - intros ->. destruct x as [a | b]; now rewrite tretract_g_adjoint.
     Qed.
 
-  End RetractSum.
+  End Retract_sum.
 
 End Usefull_Retracts.
 
