@@ -23,6 +23,9 @@ Existing Instance class | 0.
 
 Canonical Structure finType_CS (X : Type) {p : eq_dec X} {class : finTypeC (EqType X)} : finType := FinType (EqType X).
 
+(** Print the base type of [finType] in the Canonical Structure. *)
+Arguments finType_CS (X) {_ _}.
+
 Definition elem (F: finType) := @enum (type F) (class F).
 Hint Unfold elem.
 Hint Unfold class.
@@ -125,7 +128,7 @@ Lemma index_nth {F : finType} (x:F) y: nth (index x) (elem F) y = x.
   destruct Dec. auto. apply notInZero in n. now setoid_rewrite all_A in n.
 Qed.
  
-Instance injective_index (A: finType) : injective (@index A).
+Lemma injective_index (A: finType) (x1 x2 : A) : index x1 = index x2 -> x1 = x2.
 Proof.
   destruct (elem A) eqn:E.
   - hnf. intros. assert (x1 el elem A) by eauto using elem_spec. rewrite E in H0. auto.
