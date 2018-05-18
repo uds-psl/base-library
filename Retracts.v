@@ -271,6 +271,8 @@ Section TightRetract.
     |}.
   Next Obligation. now apply TRetr_inv. Qed.
 
+  Definition TRetr_inv' : forall x y, TRetr_g y = Some x -> y = TRetr_f x := ltac:(apply I).
+
 End TightRetract.
 
 Arguments TRetr_f { _ _ _ }.
@@ -395,7 +397,7 @@ End Inversion_TRetract.
 
 
 
-(* We define some other useful retracts, that do not correspond to inversions *)
+(** We define some other useful retracts, that do not correspond to inversions *)
 
 
 Section Usefull_Retracts.
@@ -403,16 +405,32 @@ Section Usefull_Retracts.
   Variable (A B C D : Type).
 
 
-  (* We can introduce an additional [Some] and use the identity as the retract function *)
-  Global Program Instance TRetract_Option : TRetract A (option A) :=
+  (** We can introduce an additional [Some] and use the identity as the retract function *)
+  Global Program Instance TRetract_option `{retr: TRetract A B} : TRetract A (option B) :=
     {|
-      TRetr_f a := Some a;
-      TRetr_g b := b;
+      TRetr_f a := Some (TRetr_f a);
+      TRetr_g ob := match ob with
+                    | Some b => TRetr_g b
+                    | None => None
+                    end;
     |}.
-  Next Obligation. split; now intros ->. Qed.
+  Next Obligation.
+    split.
+    - intros H. destruct y as [b|]; auto. now apply TRetr_inv' in H as ->. inv H.
+    - intros ->. now retract_adjoint.
+  Qed.
   
+  Global Program Instance Retract_option `{retr: Retract A B} : Retract A (option B) :=
+    {|
+      Retr_f a := Some (Retr_f a);
+      Retr_g ob := match ob with
+                    | Some b => Retr_g b
+                    | None => None
+                    end;
+    |}.
+  Next Obligation. now retract_adjoint. Qed.
 
-  (* We can introduce an additional [inl] *)
+  (** We can introduce an additional [inl] *)
   Global Program Instance TRetract_inl : TRetract A (A + B) :=
     {|
       TRetr_f a := inl a;
@@ -427,31 +445,41 @@ Section Usefull_Retracts.
     - now intros ->.
   Qed.
 
-
-  (* The same for [inr] *)
-  Global Program Instance TRetract_inr : TRetract B (A + B) :=
+  Global Program Instance Retract_inl (retrAB : Retract A B) : Retract A (B + C) :=
     {|
-      TRetr_f b := inr b;
-      TRetr_g c := match c with
-                   | inl a => None
-                   | inr b => Some b
-                   end;
+      Retr_f a := inl (Retr_f a);
+      Retr_g x := match x with
+                  | inl b => Retr_g b
+                  | inr c => None
+                  end;
+    |}.
+  Next Obligation. now retract_adjoint. Qed.
+  
+  (** The same for [inr] *)
+  
+  Global Program Instance Retract_inr (retrAB : Retract A B) : Retract A (C + B) :=
+    {|
+      Retr_f a := inr (Retr_f a);
+      Retr_g x := match x with
+                  | inl c => None
+                  | inr b => Retr_g b
+                  end;
+    |}.
+  Next Obligation. now retract_adjoint. Qed.
+  
+  Global Program Instance TRetract_inr (retrAB : TRetract A B) : TRetract A (C + B) :=
+    {|
+      TRetr_f a := inr (TRetr_f a);
+      TRetr_g x := match x with
+                  | inr b => TRetr_g b
+                  | inl c => None
+                  end;
     |}.
   Next Obligation.
     split.
-    - intros H. destruct y; now inv H.
-    - now intros ->.
+    - intros. destruct y as [a|b]; cbn. inv H. now apply TRetr_inv' in H as ->.
+    - intros ->. now retract_adjoint.
   Qed.
-
-
-  (* We can build retracts from [Empty_set] to any type *)
-  Global Program Instance TRetract_Empty : TRetract Empty_set A :=
-    {|
-      TRetr_f e := Empty_set_rect _ e;
-      TRetr_g a := None;
-    |}.
-  Next Obligation. elim x. Qed.
-  
 
 
   (*
@@ -461,28 +489,9 @@ Section Usefull_Retracts.
 
   Section RetractSum.
 
-    Global Program Instance Retract_Sum (retr1 : Retract A C) (retr2 : Retract B D) : Retract (A+B) (C+D) :=
-      {|
-        Retr_f x := match x with
-                    | inl a => inl (Retr_f a)
-                    | inr b => inr (Retr_f b)
-                    end;
-        Retr_g y := match y with
-                    | inl c => match Retr_g c with
-                              | Some a => Some (inl a)
-                              | None => None
-                              end
-                    | inr d => match Retr_g d with
-                              | Some b => Some (inr b)
-                              | None => None
-                              end
-                    end;
-      |}.
-    Next Obligation. destruct x as [a | b]; now rewrite Retr_adj. Qed.
 
-    
     (* Definition has to be copied again for tight retracts *)
-    Global Program Instance TRetract_Sum (retr1 : TRetract A C) (retr2 : TRetract B D) : TRetract (A+B) (C+D) :=
+    Program Definition TRetract_Sum (retr1 : TRetract A C) (retr2 : TRetract B D) : TRetract (A+B) (C+D) :=
       {|
         TRetr_f x := match x with
                      | inl a => inl (TRetr_f a)
@@ -685,5 +694,5 @@ Hint Resolve injective_inr : inj.
 
 (* TODO: Can any injection between decidable types be made a retract? *)
 Section Dec_Retract.
-End Dec_Retract.
+nd Dec_Retract.
 *)
