@@ -21,6 +21,7 @@ Lists/Position.v
 Lists/Power.v
 Lists/Removal.v
 
+Vectors/Fin.v
 Vectors/Vectors.v
 Vectors/FinNotation.v
 Vectors/VectorDupfree.v

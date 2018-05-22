@@ -1,6 +1,7 @@
 Require Import Shared.Prelim Shared.Tactics.Tactics Shared.EqDec.
 Require Import Coq.Vectors.Fin Coq.Vectors.Vector.
 Require Import Shared.Vectors.FinNotation.
+Require Export Shared.Vectors.Fin.
 
 
 (* Vector.nth should not reduce with simpl, except the index is given with a constructor *)
