@@ -1,4 +1,4 @@
-Require Import Base FiniteTypes.FinTypes Vectors.Fin.
+Require Import Base FiniteTypes.FinTypes Coq.Vectors.Fin.
 
 Instance Fin_eq_dec n : eq_dec (Fin.t n).
 Proof.
