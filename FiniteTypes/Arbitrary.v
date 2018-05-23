@@ -1,4 +1,4 @@
-Require Import Base FiniteTypes.FinTypes Vectors.Fin Bijection.
+Require Import Shared.Base Shared.Bijection Shared.FiniteTypes.FinTypes.
 Require Import Coq.Vectors.Fin.
 
 Instance Fin_eq_dec n : eq_dec (Fin.t n).
