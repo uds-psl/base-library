@@ -9,6 +9,7 @@ Tactics/AutoIndTac.v
 Prelim.v
 EqDec.v
 Numbers.v
+Bijection.v
 Retracts.v
 Inhabited.v
 FCI.v

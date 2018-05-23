@@ -1,5 +1,5 @@
 Require Export BasicDefinitions.
-Require Import Shared.Retracts.
+Require Import Shared.Bijection.
 
 (** ** Formalisation of finite types using canonical structures and type classes *)
 
