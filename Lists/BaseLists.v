@@ -546,3 +546,47 @@ Proof.
   - now apply map_eq_nil' in H.
   - now apply map_eq_cons' in H as (l1&l2&->&->%HInj&->%IH).
 Qed.
+
+
+
+(* ** Lemmas about [hd], [tl] and [removelast] *)
+
+Lemma tl_map (A B: Type) (f: A -> B) (xs : list A) :
+  tl (map f xs) = map f (tl xs).
+Proof. now destruct xs; cbn. Qed.
+
+
+(* Analogous to [removelast_app] *)
+
+Lemma tl_app (A: Type) (xs ys : list A) :
+  xs <> nil ->
+  tl (xs ++ ys) = tl xs ++ ys.
+Proof. destruct xs; cbn; congruence. Qed.
+
+Lemma tl_rev (A: Type) (xs : list A) :
+  tl (rev xs) = rev (removelast xs).
+Proof.
+  induction xs; cbn; auto.
+  destruct xs; cbn in *; auto.
+  rewrite tl_app; cbn in *.
+  - now rewrite IHxs.
+  - intros (H1&H2) % app_eq_nil; inv H2.
+Qed.
+
+Lemma hd_map (A B: Type) (f: A -> B) (xs : list A) (a : A) :
+  hd (f a) (map f xs) = f (hd a xs).
+Proof. destruct xs; cbn; auto. Qed.
+
+Lemma hd_app (A: Type) (xs ys : list A) a :
+  xs <> nil ->
+  hd a (xs ++ ys) = hd a xs.
+Proof. intros H. destruct xs; auto. now contradiction H. Qed.
+
+Lemma hd_rev (A: Type) (xs : list A) (a : A) :
+  hd a (rev xs) = last xs a.
+Proof.
+  induction xs; cbn; auto.
+  destruct xs; cbn; auto.
+  rewrite hd_app. now apply IHxs.
+  intros (H1&H2)%app_eq_nil; inv H2.
+Qed.
