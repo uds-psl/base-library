@@ -1,4 +1,9 @@
+(** ** Inversion *)
+
 Ltac inv H := inversion H; subst; try clear H.
+
+
+(** ** Destructing *)
 
 Tactic Notation "destruct" "_":=
   match goal with
@@ -24,65 +29,6 @@ Tactic Notation "intros" "***" := repeat (intros ?).
 
 Ltac fstep N := unfold N; fold N.
 
-Inductive Lock : Type -> Type := L (P : Type) (x : P) : Lock P.
-
-Lemma do_Lock (x : Type) : Lock x -> x.
-Proof.
-  firstorder. now destruct X.
-Qed.
-
-Lemma do_unLock (x : Type) : x -> Lock x.
-Proof.
-  firstorder. now econstructor.
-Qed.
-
-Tactic Notation "lock" := eapply do_Lock.
-Tactic Notation "unlock" := eapply do_unLock.
-
-Tactic Notation "lock" ident(H) := eapply do_unLock in H.
-Tactic Notation "unlock" ident(H) := eapply do_Lock in H.
-
-Tactic Notation "locked" tactic(t) := lock; t; unlock.
-
-Tactic Notation "unlock" "all" :=
-  repeat match goal with
-         | [ H : Lock _ |- _] => unlock H
-         | [ |- Lock _ ] => unlock
-         end.
-
-Tactic Notation "is_locked" :=
-  match goal with
-  | [ |- L _ ] => idtac
-  | _ => fail
-  end.
-
-Tactic Notation "is_locked" ident(H) :=
-  match type of H with
-  | (L _ ) => idtac
-  | _ => fail
-  end.
-
-Tactic Notation "is_unlocked" :=
-  match goal with
-  | [ |- L _ ] => fail
-  | _ => idtac
-  end.
-
-Tactic Notation "is_unlocked" ident(H) :=
-  match type of H with
-  | (L _ ) => fail
-  | _ => idtac
-  end.
-
-(* lock all lockable hypothesis, but not the goal *)
-Tactic Notation "lock" "all" :=
-  repeat
-    match goal with
-    | [ H : _ |- _ ] => is_unlocked H; lock H
-    end.
-
-
-
 (* From Program.Tactics *)
 Ltac destruct_one_pair :=
  match goal with
@@ -92,6 +38,60 @@ Ltac destruct_one_pair :=
 
 Ltac destruct_pairs := repeat (destruct_one_pair).
 
+
+
+(** ** Assumption Locking *)
+
+
+(** [lock H] "locks" the goal [H], which syntactically adds [Lock], but it doesn't change the proof script. *)
+
+Definition Lock (X: Type) : Type := X.
+Opaque Lock. Arguments Lock : simpl never.
+
+Tactic Notation "lock" ident(H) :=
+  match type of H with
+  | ?X => change (Lock X) in H
+  end.
+
+Tactic Notation "unlock" ident(H) :=
+  match type of H with
+  | Lock ?X => change X in H
+  end.
+
+Tactic Notation "unlock" "all" :=
+  repeat match goal with
+  | [ H : Lock ?X |- _ ] => change X in H
+  end.
+
+Tactic Notation "is_locked" ident(H) :=
+  match type of H with
+  | (Lock _ ) => idtac
+  | _ => fail
+  end.
+
+Tactic Notation "is_unlocked" ident(H) :=
+  match type of H with
+  | (Lock _ ) => fail
+  | _ => idtac
+  end.
+
+
+(*
+Goal True.
+  do 2 pose proof I.
+  lock H.
+  lock H0.
+  unlock H0.
+  do 2 pose proof I.
+  lock H0; lock H1.
+  unlock all.
+  Show Proof.
+Abort.
+*)
+
+
+
+(** ** Modus ponens *)
 
 
 (* Prove the non-dependent hypothesis of a hypothesis that is a implication and specialize it *)
@@ -126,7 +126,7 @@ Tactic Notation "spec_assert" hyp(H) "as" simple_intropattern(p) "by" tactic(T) 
 
 
 
-(* Some debug tactics *)
+(** ** Some debug tactics *)
 
 Ltac print_goal :=
   match goal with
