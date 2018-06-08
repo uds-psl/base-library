@@ -49,29 +49,29 @@ Definition Lock (X: Type) : Type := X.
 Opaque Lock. Arguments Lock : simpl never.
 
 Tactic Notation "lock" ident(H) :=
-  match type of H with
+  lazymatch type of H with
   | ?X => change (Lock X) in H
   end.
 
 Tactic Notation "unlock" ident(H) :=
-  match type of H with
+  lazymatch type of H with
   | Lock ?X => change X in H
   end.
 
 Tactic Notation "unlock" "all" :=
-  repeat match goal with
-  | [ H : Lock ?X |- _ ] => change X in H
-  end.
+  repeat multimatch goal with
+         | [ H : Lock ?X |- _ ] => change X in H
+         end.
 
 Tactic Notation "is_locked" ident(H) :=
-  match type of H with
-  | (Lock _ ) => idtac
-  | _ => fail
+  lazymatch type of H with
+  | Lock _ => idtac
+  | _ => fail "unlocked"
   end.
 
 Tactic Notation "is_unlocked" ident(H) :=
-  match type of H with
-  | (Lock _ ) => fail
+  lazymatch type of H with
+  | Lock _  => fail "locked"
   | _ => idtac
   end.
 
@@ -85,7 +85,15 @@ Goal True.
   do 2 pose proof I.
   lock H0; lock H1.
   unlock all.
-  Show Proof.
+
+  is_unlocked H.
+  Fail is_locked H.
+
+  lock H.
+  is_locked H.
+  Fail is_unlocked H.
+
+  Show Proof. (* Locking and unlocking is not represented in the proof term. *)
 Abort.
 *)
 
