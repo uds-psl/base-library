@@ -21,6 +21,10 @@ Structure finType : Type :=
 Arguments FinType type {class}.
 Existing Instance class | 0.
 
+
+(* This is a hack to work-around a problem with a class of hacks *)
+Hint Extern 5 (finTypeC (EqType ?x)) => unfold x : typeclass_instances.
+
 Canonical Structure finType_CS (X : Type) {p : eq_dec X} {class : finTypeC (EqType X)} : finType := FinType (EqType X).
 
 (** Print the base type of [finType] in the Canonical Structure. *)
