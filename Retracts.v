@@ -61,7 +61,20 @@ Section Retract_Properties.
   Lemma retract_g_surjective : forall x, { y | Retr_g y = Some x }.
   Proof. intros x. pose proof retract_g_adjoint x. cbn in H. eauto. Defined.
 
-  Lemma retract_g_none b :
+  Lemma retract_f_injective : forall x1 x2, Retr_f x1 = Retr_f x2 -> x1 = x2.
+  Proof.
+    intros x1 x2 H.
+    enough (Some x1 = Some x2) by congruence.
+    erewrite <- !retract_g_adjoint.
+    now rewrite H.
+  Qed.
+
+  Lemma retract_g_Some x y :
+    Retr_g (Retr_f x) = Some y ->
+    x = y.
+  Proof. now intros H % retract_g_inv % retract_f_injective. Qed.
+
+  Lemma retract_g_None b :
     Retr_g b = None ->
     forall a, Retr_f a <> b.
   Proof.
@@ -70,13 +83,6 @@ Section Retract_Properties.
     apply retract_g_adjoint.
   Qed.
 
-  Lemma retract_f_injective : forall x1 x2, Retr_f x1 = Retr_f x2 -> x1 = x2.
-  Proof.
-    intros x1 x2 H.
-    enough (Some x1 = Some x2) by congruence.
-    erewrite <- !retract_g_adjoint.
-    now rewrite H.
-  Qed.
 
 End Retract_Properties.
 
