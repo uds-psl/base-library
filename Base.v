@@ -1,8 +1,8 @@
 (** * Base Library for ICL
 
    - Version: 3 October 2016
-   - Author: Gert Smolka, Saarland University; Maximilian Wuttke
-   - Acknowlegments: Sigurd Schneider, Dominik Kirst, Yannick Forster, Maximilian Wuttke
+   - Author: Gert Smolka, Saarland University
+   - Acknowlegments: Sigurd Schneider, Dominik Kirst, Yannick Forster, Fabian Kunze, Maximilian Wuttke
  *)
 
 Require Export

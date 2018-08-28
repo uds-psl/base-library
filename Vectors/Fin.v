@@ -1,3 +1,8 @@
+(** * Tactics for [Fin.t] *)
+
+(* Author: Maximilian Wuttke *)
+
+
 Require Import Shared.Base.
 Require Import Coq.Vectors.Fin.
 

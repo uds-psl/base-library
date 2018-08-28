@@ -1,3 +1,8 @@
+(** * Bijective functions *)
+
+(* Author: Maximilian Wuttke *)
+
+
 Require Import Shared.Base.
 
 
@@ -14,7 +19,6 @@ Section Bijection.
 
   Definition left_inverse  (f : X -> Y) (g : Y -> X) := forall x : X, g (f x) = x.
   Definition right_inverse (f : X -> Y) (g : Y -> X) := forall y : Y, f (g y) = y.
-
   Definition inverse (f : X -> Y) (g : Y -> X) := left_inverse f g /\ right_inverse f g.
 
   Definition injective (f : X -> Y) :=

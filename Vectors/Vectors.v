@@ -1,3 +1,7 @@
+(** * Addendum for Vectors ([Vector.t]) *)
+(* Author: Maximilian Wuttke *)
+
+
 Require Import Shared.Prelim Shared.Tactics.Tactics Shared.EqDec.
 Require Import Coq.Vectors.Fin Coq.Vectors.Vector.
 Require Import Shared.Vectors.FinNotation.

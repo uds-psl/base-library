@@ -1,5 +1,8 @@
 (** * Inhabited types *)
 
+(* Author: Maximilian Wuttke *)
+
+
 Require Shared.Prelim.
 Require Import Coq.Vectors.Vector Coq.Vectors.Fin.
 Require Import FiniteTypes.FinTypes.
@@ -64,7 +67,7 @@ Section Test.
   Variable lie : False.
   Compute default : False.
   Variable somebool : bool.
-  (* This should prefere the instance, not the variable. *)
+  (* This should prefer the instance, not the variable. *)
   Compute default : bool.
 End Test.
 *)

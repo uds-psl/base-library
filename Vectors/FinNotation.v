@@ -1,3 +1,7 @@
+(** * Notations for [Fin.t] *)
+(* Author: Maximilian Wuttke *)
+
+
 Require Import Fin.
 
 Notation "'Fin0'"  := (Fin.F1).

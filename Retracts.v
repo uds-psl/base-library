@@ -1,5 +1,7 @@
 (** * Library for retracts  *)
 
+(* Author: Maximilian Wuttke *)
+
 Require Import Shared.Base.
 
 
@@ -38,8 +40,6 @@ Section Retract.
       Retr_g : Y -> option X;
       Retr_retr : retract Retr_f Retr_g;
     }.
-
-  Hypothesis I : Retract.
 
 End Retract.
 

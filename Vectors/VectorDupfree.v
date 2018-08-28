@@ -1,4 +1,5 @@
-(* Dupfree vector *)
+(** * Dupfree vector *)
+(* Author: Maximilian Wuttke *)
 
 Require Import Shared.Prelim.
 Require Import Shared.Tactics.Tactics.
@@ -29,6 +30,13 @@ Proof. vector_dupfree. Qed.
 
 Goal dupfree [| Fin.F1 (n := 1) |].
 Proof. vector_dupfree. Qed.
+
+(*
+(* This also works, but needs a bit to comile *)
+Require Import Shared.Vectors.FinNotation.
+Goal dupfree ([| Fin4; Fin8; Fin15; Fin16; Fin23; Fin42 |] : Vector.t (Fin.t 43) _).
+Proof. vector_dupfree. Qed.
+*)
 
 Lemma dupfree_cons (X : Type) (n : nat) (x : X) (xs : Vector.t X n) :
   dupfree (x ::: xs) -> dupfree xs /\ ~ In x xs.
