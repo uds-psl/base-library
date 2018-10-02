@@ -46,7 +46,7 @@ Ltac destruct_pairs := repeat (destruct_one_pair).
 (** [lock H] "locks" the goal [H], which syntactically adds [Lock], but it doesn't change the proof script. *)
 
 Definition Lock (X: Type) : Type := X.
-Opaque Lock. Arguments Lock : simpl never.
+Global Opaque Lock. Arguments Lock : simpl never.
 
 Tactic Notation "lock" ident(H) :=
   lazymatch type of H with
