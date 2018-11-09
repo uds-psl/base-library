@@ -6,11 +6,11 @@ Section Filter.
   Variable X : Type.
   Implicit Types (x y: X) (A B C: list X) (p q: X -> bool).
   
-  Fixpoint filter p A : list X :=
-    match A with
-    | nil => nil
-    | x::A' => if p x then x :: filter p A' else filter p A'
-    end.
+  (* Fixpoint filter p A : list X := *)
+  (*   match A with *)
+  (*   | nil => nil *)
+  (*   | x::A' => if p x then x :: filter p A' else filter p A' *)
+  (*   end. *)
 
   Lemma in_filter_iff x p A :
     x el filter p A <-> x el A /\ p x.
