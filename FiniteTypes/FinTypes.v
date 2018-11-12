@@ -139,3 +139,11 @@ Proof.
   - clear E. eapply (left_inv_inj (g := (fun y => nth y (elem A) e))).
     hnf. intros. now rewrite index_nth.
 Qed.
+
+Lemma index_leq (A:finType) (x:A): index x <= length (elem A).
+Proof.
+  unfold index.
+  generalize (elem A) . intros l.
+  induction l;cbn;[|decide _].
+  all:omega.
+Qed.

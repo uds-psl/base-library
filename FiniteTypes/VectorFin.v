@@ -1,7 +1,7 @@
 Require Import Shared.FiniteTypes.FinTypes.
 Require Import Shared.Vectors.Vectors.
 Require Import Shared.Vectors.VectorDupfree.
-
+Require Import BasicDefinitions.
 
 Definition Fin_initVect (n : nat) : Vector.t (Fin.t n) n :=
   tabulate (fun i : Fin.t n => i).
@@ -33,3 +33,41 @@ Proof.
   - eapply tolist_dupfree. apply Fin_initVect_dupfree.
   - eapply tolist_In. apply Fin_initVect_full.
 Qed.
+
+(** Function that produces a list of all Vectors of length n over A *)
+Fixpoint Vector_pow {X: Type} (A: list X) n {struct n} : list (Vector.t X n) :=
+  match n with
+  | 0 => [Vector.nil _]
+  | S n => concat (map (fun a => map (fun v => a:::v) (Vector_pow A n) ) A)
+  end.
+
+Instance Vector_finTypeC (A:finType) n: finTypeC (EqType (Vector.t A n)).
+Proof.
+  exists ((Vector_pow (elem A) n)).
+  admit.
+Admitted.
+
+Hint Extern 4 (finTypeC (EqType (Vector.t _ _))) => eapply Vector_finTypeC : typeclass_instances.
+
+
+Lemma ProdCount (T1 T2: eqType) (A: list T1) (B: list T2) (a:T1) (b:T2)  :
+  count (prodLists A B) (a,b) =  count A a * count B b .
+Proof.
+  induction A.
+  - reflexivity.
+  - cbn. rewrite <- countSplit. decide (a = a0) as [E | E].
+    + cbn. f_equal. subst a0. apply countMap. eauto.
+    + rewrite <- plus_O_n. f_equal. now apply countMapZero. eauto.
+Qed.
+
+Lemma prod_enum_ok (T1 T2: finType) (x: T1 * T2):
+  count (prodLists (elem T1) (elem T2)) x = 1.
+Proof.
+  destruct x as [x y]. rewrite ProdCount. unfold elem.
+  now repeat rewrite enum_ok.
+Qed.
+
+Instance finTypeC_Prod (F1 F2: finType) : finTypeC (EqType (F1 * F2)).
+Proof.
+  econstructor.  apply prod_enum_ok.
+Defined.

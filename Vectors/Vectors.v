@@ -262,6 +262,12 @@ Proof.
 Qed.
  *)
 
+Instance Vector_eq_dec n A: eq_dec A -> eq_dec (Vector.t A n).
+Proof.
+  intros H x y. eapply VectorEq.eq_dec with (A_beq := fun x y => proj1_sig (Sumbool.bool_of_sumbool (H x y))).
+  intros ? ?. destruct (Sumbool.bool_of_sumbool).
+  cbn.  destruct x1;intuition.
+Defined.
 
 Instance Fin_eq_dec n : eq_dec (Fin.t n).
 Proof.
@@ -382,3 +388,13 @@ Proof.
   - induction H; cbn; auto.
   - induction xs; cbn in *; auto. destruct H as [-> | H]; econstructor; eauto.
 Qed.
+
+Arguments Vector.eqb {_}  _ {_ _}.
+
+Lemma vector_eqb_spec X n eqb:
+  (forall (x1 x2 : X) , reflect (x1 = x2) (eqb x1 x2))
+  -> forall x y , reflect (x=y) (Vector.eqb (n:=n) eqb x y).
+Proof with try (constructor;congruence).
+  intros Hf x y.
+  apply iff_reflect. symmetry. apply Vector.eqb_eq. symmetry. apply reflect_iff. eauto.
+Qed. 
