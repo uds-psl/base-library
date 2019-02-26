@@ -68,3 +68,4 @@ tramp
 /elpa/
 
 *.pdf
+.coqdeps.d
