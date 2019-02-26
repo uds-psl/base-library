@@ -43,10 +43,18 @@ Fixpoint Vector_pow {X: Type} (A: list X) n {struct n} : list (Vector.t X n) :=
 
 Instance Vector_finTypeC (A:finType) n: finTypeC (EqType (Vector.t A n)).
 Proof.
-  exists ((Vector_pow (elem A) n)).
-  admit.
-Admitted.
-
+  exists (undup ((Vector_pow (elem A) n))). cbn in *.
+  intros v. eapply dupfreeCount.
+  - eapply dupfree_undup.
+  - rewrite undup_id_equi. induction v; cbn.
+    + eauto.
+    + eapply in_concat_iff. eexists; split.
+      2:eapply in_map_iff. 2:eexists.
+      2:split. 2:reflexivity.
+      eapply in_map_iff. eauto.
+      eapply elem_spec.
+Defined.
+      
 Hint Extern 4 (finTypeC (EqType (Vector.t _ _))) => eapply Vector_finTypeC : typeclass_instances.
 
 
