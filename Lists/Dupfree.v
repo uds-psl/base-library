@@ -51,6 +51,23 @@ Section Dupfree.
 
 End Dupfree.
 
+Lemma dupfree_concat X (A: list (list X)):
+  dupfree A ->
+  (forall A1 A2, A1 el A -> A2 el A -> A1 <> A2 -> disjoint A1 A2)
+  -> (forall A1, A1 el A -> dupfree A1)
+  -> dupfree (concat A).
+Proof.
+  induction A as [|A0 A].
+  -constructor.
+  -intros H1 H2 H3.  inv H1. 
+   cbn. eapply dupfree_app.
+   +hnf. setoid_rewrite in_concat_iff.
+    intros (a0&?&A1&?&?).
+    eapply (H2 A0 A1);eauto. congruence.
+   +eauto.
+   +apply IHA. all:eauto.
+Qed.
+
 Section Undup.
   Variable X : eqType.
   Implicit Types A B : list X.
@@ -124,5 +141,28 @@ Section Undup.
     undup (undup A) = undup A.
 
   Proof. apply undup_id, dupfree_undup. Qed.
+  
+  Lemma dupfree_Nodup A :
+    dupfree A <-> NoDup A.
+  Proof.
+    induction A;split;intros H;inv H;repeat econstructor;tauto.
+  Qed.
+
+  Lemma not_dupfree (A:list X):
+    ~dupfree A -> 
+    exists a A1 A2 A3, A = A1++a::A2++a::A3.
+  Proof.
+    intros DF. induction A. now destruct DF;eauto using dupfree.
+    destruct (dupfree_dec A).
+    decide (a el A).
+    -edestruct in_split as (A2&A3&eqA). eassumption.
+     rewrite eqA.
+     exists a,[],A2,A3. reflexivity. 
+    -edestruct DF. eauto using dupfree.
+    -edestruct IHA as (a'&A1&A2&A3&->). eassumption.
+     exists a',(a::A1),A2,A3. reflexivity.
+  Qed.
 
 End Undup.
+
+
