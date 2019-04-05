@@ -547,7 +547,7 @@ Proof.
   - now apply map_eq_cons' in H as (l1&l2&->&->%HInj&->%IH).
 Qed.
 
-Instance map_ext A B: Proper (@ pointwise_relation A B (@eq B) ==> (@eq (list A)) ==> (@eq (list B))) (@map A B).
+Instance map_ext_proper A B: Proper (@ pointwise_relation A B (@eq B) ==> (@eq (list A)) ==> (@eq (list B))) (@map A B).
 Proof.
   intros f f' Hf a ? <-. induction a;cbn;congruence.
 Qed.
