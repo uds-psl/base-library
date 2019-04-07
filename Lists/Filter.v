@@ -6,11 +6,11 @@ Section Filter.
   Variable X : Type.
   Implicit Types (x y: X) (A B C: list X) (p q: X -> bool).
   
-  Fixpoint filter p A : list X :=
-    match A with
-    | nil => nil
-    | x::A' => if p x then x :: filter p A' else filter p A'
-    end.
+  (* Fixpoint filter p A : list X := *)
+  (*   match A with *)
+  (*   | nil => nil *)
+  (*   | x::A' => if p x then x :: filter p A' else filter p A' *)
+  (*   end. *)
 
   Lemma in_filter_iff x p A :
     x el filter p A <-> x el A /\ p x.
@@ -18,7 +18,8 @@ Section Filter.
     induction A as [|y A]; cbn.
     - tauto.
     - destruct (p y) eqn:E; cbn;
-      rewrite IHA; intuition; subst; auto.
+        rewrite IHA; intuition; subst; auto.
+      destruct (p x); auto.
   Qed.
 
   Lemma filter_incl p A :
@@ -100,3 +101,10 @@ Section Filter.
   Qed.
   
 End Filter.
+
+
+Lemma filter_map X Y p (f: X -> Y) A :
+  filter p (map f A) = map f (filter (fun x => p (f x)) A).
+  induction A;cbn. reflexivity. destruct _;cbn; congruence.
+Qed.
+  

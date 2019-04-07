@@ -1,4 +1,5 @@
-Require Import Base FiniteTypes.FinTypes Vectors.Fin.
+Require Import Shared.Base Shared.Bijection Shared.FiniteTypes.FinTypes.
+Require Import Coq.Vectors.Fin.
 
 Instance Fin_eq_dec n : eq_dec (Fin.t n).
 Proof.
@@ -16,20 +17,6 @@ Proof.
   now rewrite undup_id_equi.
 Qed.
 
-Instance Fin_finTypeC n : finTypeC (EqType (Fin.t n)).
-Proof.
-  eapply FinTypeC with (enum := undup (all_Fin n)).
-  intros.
-  apply dupfreeCount.
-  - apply dupfree_undup.
-  - rewrite <- in_undup_iff. apply countIn. cbn in *.
-    induction x; cbn.
-    + decide _.
-      * inv e. omega.
-      * congruence.
-    + admit.
-Admitted.
-    
 (* (** * finTypes from Lists  *) *)
 (* (* Conversion of lists over eqTypes to finite types *) *)
 (* (* *) *)

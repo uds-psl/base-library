@@ -1,4 +1,5 @@
 Require Import FinTypes Base.
+Require Import Bijection.
 
 (* Require Import Vector. *)
 

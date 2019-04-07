@@ -1,4 +1,5 @@
 Require Import Prelim.
+Require Import EqDec.
 
 (** ** Numbers **)
 

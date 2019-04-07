@@ -1,21 +1,34 @@
 Require Export BasicDefinitions.
+Require Import Shared.Bijection.
+
 (** ** Formalisation of finite types using canonical structures and type classes *)
 
 (** * Definition of finite Types *)
 
-Class finTypeC  (type:eqType) : Type := FinTypeC {
-                                            enum: list type;
-                                            enum_ok: forall x: type, count enum x = 1
-                                          }.
+Class finTypeC  (type:eqType) : Type :=
+  FinTypeC {
+      enum: list type;
+      enum_ok: forall x: type, count enum x = 1
+    }.
 
-Structure finType : Type := FinType {
-                                type:> eqType;
-                                class: finTypeC type }.
+Structure finType : Type :=
+  FinType
+    {
+      type:> eqType;
+      class: finTypeC type
+    }.
 
 Arguments FinType type {class}.
 Existing Instance class | 0.
 
+
+(* This is a hack to work-around a problem with a class of hacks *)
+Hint Extern 5 (finTypeC (EqType ?x)) => unfold x : typeclass_instances.
+
 Canonical Structure finType_CS (X : Type) {p : eq_dec X} {class : finTypeC (EqType X)} : finType := FinType (EqType X).
+
+(** Print the base type of [finType] in the Canonical Structure. *)
+Arguments finType_CS (X) {_ _}.
 
 Definition elem (F: finType) := @enum (type F) (class F).
 Hint Unfold elem.
@@ -115,15 +128,22 @@ Definition index {F: finType} (x:F) := getPosition (elem F) x.
 Lemma index_nth {F : finType} (x:F) y: nth (index x) (elem F) y = x.
   unfold index, elem, enum.
   destruct F as [[X E] [A all_A]];cbn.
-  assert (H := getPosition_correct x A).
+  pose proof (getPosition_correct x A) as H.
   destruct Dec. auto. apply notInZero in n. now setoid_rewrite all_A in n.
 Qed.
  
-Lemma injective_index (A: finType) : injective (@index A).
+Lemma injective_index (A: finType) (x1 x2 : A) : index x1 = index x2 -> x1 = x2.
 Proof.
   destruct (elem A) eqn:E.
-  - hnf. intros.
-    assert (x el elem A) by eauto using elem_spec. rewrite E in H0. firstorder.
-  - clear E. eapply (left_inv_inj (f' := (fun y => nth y (elem A) e))).
+  - hnf. intros. assert (x1 el elem A) by eauto using elem_spec. rewrite E in H0. auto.
+  - clear E. eapply (left_inv_inj (g := (fun y => nth y (elem A) e))).
     hnf. intros. now rewrite index_nth.
+Qed.
+
+Lemma index_leq (A:finType) (x:A): index x <= length (elem A).
+Proof.
+  unfold index.
+  generalize (elem A) . intros l.
+  induction l;cbn;[|decide _].
+  all:omega.
 Qed.

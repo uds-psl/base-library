@@ -1,4 +1,4 @@
-Require Export Prelim.
+Require Export Prelim EqDec.
 
 Export ListNotations.
 Notation "x 'el' A" := (In x A) (at level 70).
@@ -390,5 +390,207 @@ Lemma in_concat_iff A l (a:A) : a el concat l <-> exists l', a el l' /\ l' el l.
 Proof.
   induction l; cbn.
   - intuition. now destruct H. 
-  - rewrite in_app_iff, IHl. firstorder subst. auto. (* TODO: find something faster than firstorder subst *)
+  - rewrite in_app_iff, IHl. firstorder subst. auto.
 Qed.
+
+
+Lemma app_comm_cons' (A : Type) (x y : list A) (a : A) :
+  x ++ a :: y = (x ++ [a]) ++ y.
+Proof. rewrite <- app_assoc. cbn. trivial. Qed.
+
+
+(** skipn *)
+
+Lemma skipn_nil (X : Type) (n : nat) : skipn n nil = @nil X.
+Proof. destruct n; cbn; auto. Qed.
+
+Lemma skipn_app (X : Type) (xs ys : list X) (n : nat) :
+  n = (| xs |) ->
+  skipn n (xs ++ ys) = ys.
+Proof.
+  intros ->. revert ys. induction xs; cbn; auto.
+Qed.
+
+Lemma skipn_length (X : Type) (n : nat) (xs : list X) :
+  length (skipn n xs) = length xs - n.
+Proof.
+  revert xs. induction n; intros; cbn.
+  - omega.
+  - destruct xs; cbn; auto.
+Qed.
+
+
+
+(** Repeat *)
+
+Lemma map_repeat (X Y : Type) (f : X -> Y) (n : nat) (a : X) :
+  map f (repeat a n) = repeat (f a) n.
+Proof. induction n; cbn in *; f_equal; auto. Qed.
+
+Lemma repeat_add_app (X : Type) (m n : nat) (a : X) :
+  repeat a (m + n) = repeat a m ++ repeat a n.
+Proof. induction m; cbn; f_equal; auto. Qed.
+
+Lemma repeat_S_cons (X : Type) (n : nat) (a : X) :
+  a :: repeat a n = repeat a n ++ [a].
+Proof.
+  replace (a :: repeat a n) with (repeat a (S n)) by trivial. replace (S n) with (n+1) by omega.
+  rewrite repeat_add_app. cbn. trivial.
+Qed.
+
+Lemma repeat_app_eq (X : Type) (m n : nat) (a : X) :
+  repeat a n ++ repeat a m = repeat a m ++ repeat a n.
+Proof. rewrite <- !repeat_add_app. f_equal. omega. Qed.
+
+Lemma repeat_eq_iff (X : Type) (n : nat) (a : X) x :
+  x = repeat a n <-> length x = n /\ forall y, y el x -> y = a.
+Proof.
+  split.
+  {
+    intros ->. split. apply repeat_length. apply repeat_spec.
+  }
+  {
+    revert x. induction n; intros x (H1&H2); cbn in *.
+    - destruct x; cbn in *; congruence.
+    - destruct x; cbn in *; inv H1. f_equal.
+      + apply H2. auto.
+      + apply IHn. auto.
+  }
+Qed.
+
+Lemma rev_repeat (X : Type) (n : nat) (a : X) :
+  rev (repeat a n) = repeat a n.
+Proof.
+  apply repeat_eq_iff. split.
+  - rewrite rev_length. rewrite repeat_length. auto.
+  - intros y Hx % in_rev. eapply repeat_spec; eauto.
+Qed.
+
+Lemma concat_repeat_repeat (X : Type) (n m : nat) (a : X) :
+  concat (repeat (repeat a n) m) = repeat a (m*n).
+Proof.
+  induction m as [ | m' IHm]; cbn.
+  - auto.
+  - rewrite repeat_add_app. f_equal. auto.
+Qed.
+
+
+Corollary skipn_repeat_add (X : Type) (n m : nat) (a : X) :
+  skipn n (repeat a (n + m)) = repeat a m.
+Proof.
+  rewrite repeat_add_app. erewrite skipn_app; eauto. symmetry. apply repeat_length.
+Qed.
+
+Corollary skipn_repeat (X : Type) (n : nat) (a : X) :
+  skipn n (repeat a n) = nil.
+Proof.
+  rewrite <- (app_nil_r (repeat a n)). erewrite skipn_app; eauto. symmetry. apply repeat_length.
+Qed.
+
+
+(** Facts about equality for [map] and [rev] *)
+Lemma rev_eq_nil (Z: Type) (l: list Z) :
+  rev l = nil -> l = nil.
+Proof. intros. destruct l; cbn in *. reflexivity. symmetry in H. now apply app_cons_not_nil in H. Qed.
+
+Lemma map_eq_nil (Y Z: Type) (f: Y->Z) (l: list Y) :
+  map f l = nil -> l = nil.
+Proof. intros. destruct l; cbn in *. reflexivity. congruence. Qed.
+
+Lemma map_eq_nil' (Y Z: Type) (f: Y->Z) (l: list Y) :
+  nil = map f l -> l = nil.
+Proof. now intros H % eq_sym % map_eq_nil. Qed.
+
+Lemma map_eq_cons (A B: Type) (f: A->B) (xs: list A) (y: B) (ys: list B) :
+  map f xs = y :: ys ->
+  exists x xs', xs = x :: xs' /\
+          y = f x /\
+          ys = map f xs'.
+Proof. induction xs; intros H; cbn in *; inv H; eauto. Qed.
+
+Lemma map_eq_cons' (A B: Type) (f: A -> B) (xs: list A) (y: B) (ys: list B) :
+  y :: ys = map f xs ->
+  exists x xs', xs = x :: xs' /\
+          y = f x /\
+          ys = map f xs'.
+Proof. now intros H % eq_sym % map_eq_cons. Qed.
+
+
+Lemma map_eq_app (A B: Type) (f: A -> B) (ls : list A) (xs ys : list B) :
+  map f ls = xs ++ ys ->
+  exists ls1 ls2, ls = ls1 ++ ls2 /\
+             xs = map f ls1 /\
+             ys = map f ls2.
+Proof.
+  revert xs ys. induction ls; intros; cbn in *.
+  - symmetry in H. apply app_eq_nil in H as (->&->). exists nil, nil. cbn. tauto.
+  - destruct xs; cbn in *.
+    + exists nil. eexists. repeat split. cbn. now subst.
+    + inv H. specialize IHls with (1 := H2) as (ls1&ls2&->&->&->).
+      repeat econstructor. 2: instantiate (1 := a :: ls1). all: reflexivity.
+Qed.
+
+Lemma rev_eq_cons (A: Type) (ls: list A) (x : A) (xs: list A) :
+  rev ls = x :: xs ->
+  ls = rev xs ++ [x].
+Proof. intros H. rewrite <- rev_involutive at 1. rewrite H. cbn. reflexivity. Qed.
+
+
+
+(** Injectivity of [map], if the function is injective *)
+Lemma map_injective (X Y: Type) (f: X -> Y) :
+  (forall x y, f x = f y -> x = y) ->
+  forall xs ys, map f xs = map f ys -> xs = ys.
+Proof.
+  intros HInj. hnf. intros x1. induction x1 as [ | x x1' IH]; intros; cbn in *.
+  - now apply map_eq_nil' in H.
+  - now apply map_eq_cons' in H as (l1&l2&->&->%HInj&->%IH).
+Qed.
+
+Instance map_ext_proper A B: Proper (@ pointwise_relation A B (@eq B) ==> (@eq (list A)) ==> (@eq (list B))) (@map A B).
+Proof.
+  intros f f' Hf a ? <-. induction a;cbn;congruence.
+Qed.
+
+(* ** Lemmas about [hd], [tl] and [removelast] *)
+
+Lemma tl_map (A B: Type) (f: A -> B) (xs : list A) :
+  tl (map f xs) = map f (tl xs).
+Proof. now destruct xs; cbn. Qed.
+
+
+(* Analogous to [removelast_app] *)
+
+Lemma tl_app (A: Type) (xs ys : list A) :
+  xs <> nil ->
+  tl (xs ++ ys) = tl xs ++ ys.
+Proof. destruct xs; cbn; congruence. Qed.
+
+Lemma tl_rev (A: Type) (xs : list A) :
+  tl (rev xs) = rev (removelast xs).
+Proof.
+  induction xs; cbn; auto.
+  destruct xs; cbn in *; auto.
+  rewrite tl_app; cbn in *.
+  - now rewrite IHxs.
+  - intros (H1&H2) % app_eq_nil; inv H2.
+Qed.
+
+Lemma hd_map (A B: Type) (f: A -> B) (xs : list A) (a : A) :
+  hd (f a) (map f xs) = f (hd a xs).
+Proof. destruct xs; cbn; auto. Qed.
+
+Lemma hd_app (A: Type) (xs ys : list A) a :
+  xs <> nil ->
+  hd a (xs ++ ys) = hd a xs.
+Proof. intros H. destruct xs; auto. now contradiction H. Qed.
+
+Lemma hd_rev (A: Type) (xs : list A) (a : A) :
+  hd a (rev xs) = last xs a.
+Proof.
+  induction xs; cbn; auto.
+  destruct xs; cbn; auto.
+  rewrite hd_app. now apply IHxs.
+  intros (H1&H2)%app_eq_nil; inv H2.
+Qed.
+

@@ -2,7 +2,7 @@
 
    - Version: 3 October 2016
    - Author: Gert Smolka, Saarland University
-   - Acknowlegments: Sigurd Schneider, Dominik Kirst, Yannick Forster
+   - Acknowlegments: Sigurd Schneider, Dominik Kirst, Yannick Forster, Fabian Kunze, Maximilian Wuttke
  *)
 
 Require Export
@@ -14,6 +14,4 @@ Require Export
         Filter
         Position
         Power
-        Removal
-        Shared.FCI.
-
+        Removal.

@@ -38,8 +38,9 @@
 *.vo
 *.glob
 *.v.d
-/.coq-native/  
+/.coq-native/
 Makefile.coq
+CoqMakefile.conf
 
 ### Emacs ###
 # -*- mode: gitignore; -*-
@@ -67,3 +68,4 @@ tramp
 /elpa/
 
 *.pdf
+.coqdeps.d
