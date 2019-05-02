@@ -2,7 +2,7 @@
 
 (* Author: Maximilian Wuttke *)
 
-Require Import Shared.Base.
+Require Import PslBase.Base.
 
 
 (*

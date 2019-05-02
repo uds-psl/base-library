@@ -3,7 +3,7 @@
 (* Author: Maximilian Wuttke *)
 
 
-Require Shared.Prelim.
+Require PslBase.Prelim.
 Require Import Coq.Vectors.Vector Coq.Vectors.Fin.
 Require Import FiniteTypes.FinTypes.
 

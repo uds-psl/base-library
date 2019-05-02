@@ -3,7 +3,7 @@
 (* Author: Maximilian Wuttke *)
 
 
-Require Import Shared.Base.
+Require Import PslBase.Base.
 Require Import Coq.Vectors.Fin.
 
 

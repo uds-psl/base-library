@@ -1,11 +1,11 @@
 (** * Dupfree vector *)
 (* Author: Maximilian Wuttke *)
 
-Require Import Shared.Prelim.
-Require Import Shared.Tactics.Tactics.
-Require Import Shared.Vectors.Vectors.
-Require Import Shared.FiniteTypes.FinTypes.
-Require Shared.Lists.Dupfree.
+Require Import PslBase.Prelim.
+Require Import PslBase.Tactics.Tactics.
+Require Import PslBase.Vectors.Vectors.
+Require Import PslBase.FiniteTypes.FinTypes.
+Require PslBase.Lists.Dupfree.
 Require Import Coq.Vectors.Vector.
 
 Open Scope vector_scope.
@@ -33,7 +33,7 @@ Proof. vector_dupfree. Qed.
 
 (*
 (* This also works, but needs a bit to comile *)
-Require Import Shared.Vectors.FinNotation.
+Require Import PslBase.Vectors.FinNotation.
 Goal dupfree ([| Fin4; Fin8; Fin15; Fin16; Fin23; Fin42 |] : Vector.t (Fin.t 43) _).
 Proof. vector_dupfree. Qed.
 *)

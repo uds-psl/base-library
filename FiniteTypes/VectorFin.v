@@ -1,6 +1,6 @@
-Require Import Shared.FiniteTypes.FinTypes.
-Require Import Shared.Vectors.Vectors.
-Require Import Shared.Vectors.VectorDupfree.
+Require Import PslBase.FiniteTypes.FinTypes.
+Require Import PslBase.Vectors.Vectors.
+Require Import PslBase.Vectors.VectorDupfree.
 Require Import BasicDefinitions.
 
 Definition Fin_initVect (n : nat) : Vector.t (Fin.t n) n :=

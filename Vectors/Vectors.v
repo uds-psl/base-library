@@ -2,10 +2,10 @@
 (* Author: Maximilian Wuttke *)
 
 
-Require Import Shared.Prelim Shared.Tactics.Tactics Shared.EqDec.
+Require Import PslBase.Prelim PslBase.Tactics.Tactics PslBase.EqDec.
 Require Import Coq.Vectors.Fin Coq.Vectors.Vector.
-Require Import Shared.Vectors.FinNotation.
-Require Export Shared.Vectors.Fin.
+Require Import PslBase.Vectors.FinNotation.
+Require Export PslBase.Vectors.Fin.
 
 
 (* Vector.nth should not reduce with simpl, except the index is given with a constructor *)

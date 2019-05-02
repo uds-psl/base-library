@@ -1,4 +1,4 @@
--R . "Shared"
+-R . "PslBase"
 -install none
 COQDOCFLAGS = "--charset utf-8 -s --parse-comments --with-header ../website/resources/header.html --with-footer ../website/resources/footer.html --index indexpage"
 

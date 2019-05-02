@@ -2,7 +2,7 @@
 - includes basic Lemmas about said functions 
  *)
 
-Require Export Shared.Base.
+Require Export PslBase.Base.
 
 (** * Definition of useful tactics *)
 

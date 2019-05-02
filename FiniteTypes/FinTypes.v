@@ -1,5 +1,5 @@
 Require Export BasicDefinitions.
-Require Import Shared.Bijection.
+Require Import PslBase.Bijection.
 
 (** ** Formalisation of finite types using canonical structures and type classes *)
 
