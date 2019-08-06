@@ -10,6 +10,7 @@ Require Import Coq.Vectors.Vector.
 
 Open Scope vector_scope.
 
+
 Inductive dupfree X : forall n, Vector.t X n -> Prop :=
   dupfreeVN :
     dupfree (@Vector.nil X)
@@ -84,6 +85,8 @@ Proof.
   - cbn. constructor.
   - cbn. constructor; auto. now intros (? & -> % HInj & ?) % vect_in_map_iff.
 Qed.
+
+Import VecToListCoercion.
 
 Lemma tolist_dupfree (X : Type) (n : nat) (xs : Vector.t X n) :
   dupfree xs -> Dupfree.dupfree xs.

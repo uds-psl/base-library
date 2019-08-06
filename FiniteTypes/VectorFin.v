@@ -25,6 +25,8 @@ Definition Fin_initVect_nth (n : nat) (k : Fin.t n) :
   Vector.nth (Fin_initVect n) k = k.
 Proof. unfold Fin_initVect. apply nth_tabulate. Qed.
 
+Import VecToListCoercion.
+
 Instance Fin_finTypeC n : finTypeC (EqType (Fin.t n)).
 Proof.
   constructor 1 with (enum := Fin_initVect n).
@@ -33,6 +35,7 @@ Proof.
   - eapply tolist_dupfree. apply Fin_initVect_dupfree.
   - eapply tolist_In. apply Fin_initVect_full.
 Qed.
+
 
 (** Function that produces a list of all Vectors of length n over A *)
 Fixpoint Vector_pow {X: Type} (A: list X) n {struct n} : list (Vector.t X n) :=
