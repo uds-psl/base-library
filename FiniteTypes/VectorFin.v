@@ -35,8 +35,9 @@ Proof.
   eapply dupfreeCount.
   - eapply tolist_dupfree. apply Fin_initVect_dupfree.
   - eapply tolist_In. apply Fin_initVect_full.
-Qed.
+Defined.
 
+Hint Extern 4 (finTypeC (EqType (Fin.t _))) => eapply Fin_finTypeC : typeclass_instances.
 
 (** Function that produces a list of all Vectors of length n over A *)
 Fixpoint Vector_pow {X: Type} (A: list X) n {struct n} : list (Vector.t X n) :=
