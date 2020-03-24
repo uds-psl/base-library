@@ -12,6 +12,7 @@ Global Unset Strict Implicit.
 Global Unset Printing Records.
 Global Unset Printing Implicit Defensive.
 Global Set Regular Subst Tactic.
+Global Set Refine Instance Mode.
 
 Hint Extern 4 => exact _.  (* makes auto use type class inference *)
 
