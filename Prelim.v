@@ -63,11 +63,10 @@ Hint Resolve bool_Prop_true' bool_Prop_false'.
 
 
 Definition bool2nat := fun b : bool => if b then 1 else 0.
-Coercion bool2nat : bool >-> nat.
 Definition nat2bool := fun n : nat => match n with 0 => false | _ => true end.
 (* Coercion nat2bool : nat >-> bool. *)
 Lemma bool_nat (b : bool) :
-  1 = b -> b.
+  1 = bool2nat b -> b.
 Proof. intros; cbv in *. destruct b. auto. congruence. Qed.
 Lemma nat_bool (b : bool) :
   b = nat2bool 1 -> b.
