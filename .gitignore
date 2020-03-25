@@ -41,6 +41,9 @@
 /.coq-native/
 Makefile.coq
 CoqMakefile.conf
+.CoqMakefile.d
+*.vos
+*.vok
 
 ### Emacs ###
 # -*- mode: gitignore; -*-
@@ -69,3 +72,5 @@ tramp
 
 *.pdf
 .coqdeps.d
+
+

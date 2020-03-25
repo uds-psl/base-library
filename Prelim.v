@@ -12,7 +12,6 @@ Global Unset Strict Implicit.
 Global Unset Printing Records.
 Global Unset Printing Implicit Defensive.
 Global Set Regular Subst Tactic.
-Global Set Refine Instance Mode.
 
 Hint Extern 4 => exact _.  (* makes auto use type class inference *)
 
@@ -66,12 +65,12 @@ Hint Resolve bool_Prop_true' bool_Prop_false'.
 Definition bool2nat := fun b : bool => if b then 1 else 0.
 Coercion bool2nat : bool >-> nat.
 Definition nat2bool := fun n : nat => match n with 0 => false | _ => true end.
-Coercion nat2bool : nat >-> bool.
+(* Coercion nat2bool : nat >-> bool. *)
 Lemma bool_nat (b : bool) :
   1 = b -> b.
 Proof. intros; cbv in *. destruct b. auto. congruence. Qed.
 Lemma nat_bool (b : bool) :
-  b = 1 -> b.
+  b = nat2bool 1 -> b.
 Proof. intros; cbv in *. destruct b. auto. congruence. Qed.
 Hint Resolve bool_nat nat_bool.
 

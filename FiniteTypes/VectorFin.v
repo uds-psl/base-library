@@ -1,7 +1,7 @@
+Require Import BasicDefinitions.
 Require Import PslBase.FiniteTypes.FinTypes.
 Require Import PslBase.Vectors.Vectors.
 Require Import PslBase.Vectors.VectorDupfree.
-Require Import BasicDefinitions.
 
 Definition Fin_initVect (n : nat) : Vector.t (Fin.t n) n :=
   tabulate (fun i : Fin.t n => i).
@@ -10,7 +10,7 @@ Lemma Fin_initVect_dupfree n :
   dupfree (Fin_initVect n).
 Proof.
   unfold Fin_initVect.
-  apply dupfree_tabulate_injective.
+  eapply dupfree_tabulate_injective.
   firstorder.
 Qed.
 
@@ -59,7 +59,7 @@ Hint Extern 4 (finTypeC (EqType (Vector.t _ _))) => eapply Vector_finTypeC : typ
 
 
 Lemma ProdCount (T1 T2: eqType) (A: list T1) (B: list T2) (a:T1) (b:T2)  :
-  count (prodLists A B) (a,b) =  count A a * count B b .
+  BasicDefinitions.count (prodLists A B) (a,b) =  BasicDefinitions.count A a * BasicDefinitions.count B b .
 Proof.
   induction A.
   - reflexivity.
@@ -69,7 +69,7 @@ Proof.
 Qed.
 
 Lemma prod_enum_ok (T1 T2: finType) (x: T1 * T2):
-  count (prodLists (elem T1) (elem T2)) x = 1.
+  BasicDefinitions.count (prodLists (elem T1) (elem T2)) x = 1.
 Proof.
   destruct x as [x y]. rewrite ProdCount. unfold elem.
   now repeat rewrite enum_ok.
