@@ -2,6 +2,7 @@ Require Import PslBase.FiniteTypes.FinTypes.
 Require Import PslBase.Vectors.Vectors.
 Require Import PslBase.Vectors.VectorDupfree.
 Require Import BasicDefinitions.
+Import VectorNotations2.
 
 Definition Fin_initVect (n : nat) : Vector.t (Fin.t n) n :=
   tabulate (fun i : Fin.t n => i).

@@ -9,6 +9,7 @@ Require PslBase.Lists.Dupfree.
 Require Import Coq.Vectors.Vector.
 
 Open Scope vector_scope.
+Import VectorNotations2.
 
 Inductive dupfree X : forall n, Vector.t X n -> Prop :=
   dupfreeVN :
