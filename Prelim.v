@@ -31,18 +31,18 @@ Qed.
 
 (** ** Boolean propositions and decisions *)
 
-Coercion bool2Prop (b : bool) := if b then True else False.
+Coercion is_true : bool >-> Sortclass.
 
 Lemma bool_Prop_true b :
   b = true -> b.
 Proof.
-  intros A. rewrite A. exact I.
+  intros A. rewrite A. reflexivity.
 Qed.
 
 Lemma bool_Prop_false b :
   b = false -> ~ b.
 Proof.
-  intros A. rewrite A. cbn. auto.
+  intros A. rewrite A. cbn. intros H. congruence.
 Qed.
 
 Lemma bool_Prop_true' (b : bool) :
@@ -76,8 +76,8 @@ Hint Resolve bool_nat nat_bool.
 Ltac simpl_coerce :=
   match goal with
   | [ H: False |- _ ] => destruct H
-  | [ H: ~ bool2Prop true |- _ ] => destruct H
-  | [ H: bool2Prop false |- _ ] => destruct H
+  | [ H: ~ is_true true |- _ ] => destruct H; congruence
+  | [ H: is_true false |- _ ] => congruence
   end.
 
 
