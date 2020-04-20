@@ -385,8 +385,11 @@ Proof. intros H. simpl_vector_in. Qed.
 
 
 (** Conversion between vectors and lists *)
+Module VecToListCoercion.
+  Coercion Vector.to_list : Vector.t >-> list.
+End VecToListCoercion.
 
-Coercion Vector.to_list : Vector.t >-> list.
+Import VecToListCoercion.
 
 Lemma tolist_In (X : Type) (n : nat) (xs : Vector.t X n) (x : X) :
   Vector.In x xs <-> List.In x xs.
@@ -404,4 +407,12 @@ Lemma vector_eqb_spec X n eqb:
 Proof with try (constructor;congruence).
   intros Hf x y.
   apply iff_reflect. symmetry. apply Vector.eqb_eq. symmetry. apply reflect_iff. eauto.
+Qed. 
+
+Lemma vector_to_list_inj (X : Type) (n : nat) (xs ys : Vector.t X n) :
+  Vector.to_list xs = Vector.to_list ys -> xs = ys.
+Proof.
+  revert ys. induction xs as [ | x n xs IH]; intros; cbn in *.
+  - destruct_vector. reflexivity.
+  - destruct_vector. cbn in *. inv H. f_equal. auto.
 Qed.
