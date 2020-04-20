@@ -121,6 +121,20 @@ Proof.
   -repeat destruct Dec;intuition; congruence.
 Qed.
 
+Lemma getPosition_nth (X:eqType) k (d :X) xs:
+  Dupfree.dupfree xs ->
+  k < length xs ->
+  getPosition xs (nth k xs d) = k.
+Proof.
+  induction xs in k|-*. now cbn.
+  intros H1 H2. inv H1.
+  cbn. destruct k.
+  -decide _. all:easy.
+  -decide _.
+   +subst a. cbn in H2. edestruct H3. eapply nth_In. omega.
+   + cbn in H2. rewrite IHxs. all:try easy;omega.
+Qed.
+
 Definition pos_def (X : eqType) (x : X) A n :=  match pos x A with None => n | Some n => n end. 
 
 Definition index {F: finType} (x:F) := getPosition (elem F) x.
@@ -140,10 +154,19 @@ Proof.
     hnf. intros. now rewrite index_nth.
 Qed.
 
-Lemma index_leq (A:finType) (x:A): index x <= length (elem A).
+Lemma index_le (A:finType) (x:A): index x < length (elem A).
 Proof.
   unfold index.
-  generalize (elem A) . intros l.
+  assert (H:x el elem A) by apply elem_spec.
+  revert H.
+  generalize (elem A). intros l H.
   induction l;cbn;[|decide _].
-  all:omega.
+  -easy.
+  -omega.
+  -destruct H. congruence. apply IHl in H. omega.
+Qed.
+
+Lemma index_leq (A:finType) (x:A): index x <= length (elem A).
+Proof.
+  eapply Nat.lt_le_incl,index_le.
 Qed.

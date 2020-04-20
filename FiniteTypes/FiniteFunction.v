@@ -45,6 +45,22 @@ Proof.
     dec; cbn in *; subst; firstorder.
 Qed.
 
+Lemma lookup_complete (A: eqType) (B: Type) (L : list (prod A B)) a def :
+  {(a,lookup L a def) el L } + {~(exists b, (a,b) el L) /\ lookup L a def  = def}.
+Proof.
+  unfold lookup.
+  destruct filter eqn:E.
+  - right. split. 2:easy.
+    intros (x&?).
+    assert ((a,x) el filter (fun p : A * B => Dec (fst p = a)) L).
+    {rewrite in_filter_iff;cbn. decide _;try easy. }
+    rewrite E in H0. easy. 
+  - assert (p el (filter (fun p : A * B => Dec (fst p = a)) L)) by now rewrite E.
+    rewrite in_filter_iff in H.
+    destruct p.
+    dec; cbn in *; subst; firstorder.
+Qed.
+
 Lemma finfunc_correct (A: finType) B (f: A -> B) a  def: lookup (finfunc_table f) a def = f a.
 Proof.
   eapply lookup_sound; [ apply finfunc_sound_cor | apply finfunc_comp ].
