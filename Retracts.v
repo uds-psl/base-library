@@ -129,12 +129,12 @@ Section ComposeRetracts.
           end.
 
   (* No instance (outside of this section), for obvious reasons... *)
-  Local Instance ComposeRetract (retr1 : Retract B C) (retr2 : Retract A B) : Retract A C :=
+  Program Instance ComposeRetract (retr1 : Retract B C) (retr2 : Retract A B) : Retract A C :=
     {|
       Retr_f := retr_comp_f Retr_f Retr_f;
       Retr_g := retr_comp_g Retr_g Retr_g;
     |}.
-  Proof.
+  Next Obligation.
     abstract now
       unfold retr_comp_f, retr_comp_g; intros a c; split;
       [intros H; destruct (Retr_g c) as [ | ] eqn:E;
@@ -155,24 +155,24 @@ Section Usefull_Retracts.
 
 
   (** Identity retract *)
-  Global Instance Retract_id : Retract A A :=
+  Global Program Instance Retract_id : Retract A A :=
     {|
       Retr_f a := a;
       Retr_g b := Some b;
     |}.
-  Proof. abstract now hnf; firstorder congruence. Defined.
+  Next Obligation. abstract now hnf; firstorder congruence. Defined.
 
 
   (** Empty retract *)
-  Global Instance Retract_Empty : Retract Empty_set A :=
+  Global Program Instance Retract_Empty : Retract Empty_set A :=
     {|
       Retr_f e := @Empty_set_rect (fun _ => A) e;
       Retr_g b := None;
     |}.
-  Proof. abstract now intros x; elim x. Defined.
+  Next Obligation. abstract now intros x; elim x. Defined.
 
   (** Eliminate the [Empty_set] from the source sum type *)
-  Global Instance Retract_Empty_left `{retr: Retract A B} : Retract (A + Empty_set) B :=
+  Global Program Instance Retract_Empty_left `{retr: Retract A B} : Retract (A + Empty_set) B :=
     {|
       Retr_f a := match a with
                   | inl a => Retr_f a
@@ -183,14 +183,14 @@ Section Usefull_Retracts.
                   | None => None
                   end;
     |}.
-  Proof.
+  Next Obligation.
     abstract now intros [ a | [] ] b; split;
       [ intros H; destruct (Retr_g b) eqn:E; inv H; now apply retract_g_inv in E
       | intros ->; now retract_adjoint
       ].
   Defined.
 
-  Global Instance Retract_Empty_right `{retr: Retract A B} : Retract (Empty_set + A) B :=
+  Global Program Instance Retract_Empty_right `{retr: Retract A B} : Retract (Empty_set + A) B :=
     {|
       Retr_f a := match a with
                   | inl e => @Empty_set_rect (fun _ => B) e
@@ -201,7 +201,7 @@ Section Usefull_Retracts.
                   | None => None
                   end;
     |}.
-  Proof.
+  Next Obligation.
     abstract now intros [ [] | a ] b; split;
       [ intros H; destruct (Retr_g b) eqn:E; inv H; now apply retract_g_inv in E
       | intros ->; now retract_adjoint
@@ -210,7 +210,7 @@ Section Usefull_Retracts.
 
 
   (** We can introduce an additional [Some] and use the identity as the retract function *)
-  Global Instance Retract_option `{retr: Retract A B} : Retract A (option B) :=
+  Global Program Instance Retract_option `{retr: Retract A B} : Retract A (option B) :=
     {|
       Retr_f a := Some (Retr_f a);
       Retr_g ob := match ob with
@@ -218,7 +218,7 @@ Section Usefull_Retracts.
                     | None => None
                     end;
     |}.
-  Proof.
+  Next Obligation.
     abstract now
       split;
       [ intros H; destruct y as [b|];
@@ -238,12 +238,12 @@ Section Usefull_Retracts.
           | inr c => None
           end.
 
-  Global Instance Retract_inl (retrAB : Retract A B) : Retract A (B + C) :=
+  Global Program Instance Retract_inl (retrAB : Retract A B) : Retract A (B + C) :=
     {|
       Retr_f := retract_inl_f Retr_f;
       Retr_g := retract_inl_g Retr_g;
     |}.
-  Proof.
+  Next Obligation.
     abstract now
       unfold retract_inl_f, retract_inl_g; hnf; intros x y; split;
       [ destruct y as [a|b]; [ now intros -> % retract_g_inv | congruence ]
@@ -261,12 +261,12 @@ Section Usefull_Retracts.
           | inl c => None
           end.
 
-  Global Instance Retract_inr (retrAB : Retract A B) : Retract A (C + B) :=
+  Global Program Instance Retract_inr (retrAB : Retract A B) : Retract A (C + B) :=
     {|
       Retr_f := retract_inr_f Retr_f;
       Retr_g := retract_inr_g Retr_g;
     |}.
-  Proof.
+  Next Obligation.
     abstract now
       unfold retract_inr_f, retract_inr_g; hnf; intros x y; split;
       [ destruct y as [a|b]; [ congruence | now intros -> % retract_g_inv ]
@@ -298,12 +298,12 @@ Section Usefull_Retracts.
                       end
             end.
 
-    Local Instance Retract_sum (retr1 : Retract A C) (retr2 : Retract B D) : Retract (A+B) (C+D) :=
+    Local Program Instance Retract_sum (retr1 : Retract A C) (retr2 : Retract B D) : Retract (A+B) (C+D) :=
       {|
         Retr_f := retract_sum_f Retr_f Retr_f;
         Retr_g := retract_sum_g Retr_g Retr_g;
       |}.
-    Proof.
+    Next Obligation.
       abstract now
         unfold retract_sum_f, retract_sum_g; intros x y; split;
         [ intros H; destruct y as [c|d];

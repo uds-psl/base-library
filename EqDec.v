@@ -12,11 +12,10 @@ Existing Class dec.
 Definition Dec (X: Prop) (d: dec X) : dec X := d.
 Arguments Dec X {d}.
 
-
 Lemma Dec_reflect (X: Prop) (d: dec X) :
   Dec X <-> X.
 Proof.
-  destruct d as [A|A]; cbn; tauto.
+  destruct d as [A|A]; cbv; firstorder congruence.
 Qed.
 
 Notation Decb X := (dec2bool (Dec X)).
@@ -30,13 +29,13 @@ Qed.
 Lemma Dec_auto (X: Prop) (d: dec X) :
   X -> Dec X.
 Proof.
-  destruct d as [A|A]; cbn; tauto.
+  destruct d as [A|A]; cbn; intuition congruence.
 Qed.
 
 Lemma Dec_auto_not (X: Prop) (d: dec X) :
   ~ X -> ~ Dec X.
 Proof.
-  destruct d as [A|A]; cbn; tauto.
+  destruct d as [A|A]; cbn; intuition congruence.
 Qed.
 
 Hint Resolve Dec_auto Dec_auto_not.
