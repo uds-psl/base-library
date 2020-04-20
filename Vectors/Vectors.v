@@ -35,12 +35,19 @@ Tactic Notation "dependent" "destruct" constr(V) :=
 Delimit Scope vector_scope with vector.
 Local Open Scope vector.
 
+Module VectorNotations2.
+
 Notation "[||]" := (nil _) : vector_scope.
 Notation "h ':::' t" := (cons _ h _ t) (at level 60, right associativity) : vector_scope.
 
 Notation " [| x |] " := (x ::: [||]) : vector_scope.
 Notation " [| x ; y ; .. ; z |] " := (cons _ x _ (cons _ y _ .. (cons _ z _ (nil _)) ..)) : vector_scope.
 Notation "v [@ p ]" := (nth v p) (at level 1, format "v [@ p ]") : vector_scope.
+
+End VectorNotations2.
+
+Import VectorNotations2.
+
 
 
 Ltac existT_eq :=
@@ -397,4 +404,4 @@ Lemma vector_eqb_spec X n eqb:
 Proof with try (constructor;congruence).
   intros Hf x y.
   apply iff_reflect. symmetry. apply Vector.eqb_eq. symmetry. apply reflect_iff. eauto.
-Qed. 
+Qed.
