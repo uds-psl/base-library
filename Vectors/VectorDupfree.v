@@ -9,6 +9,7 @@ Require PslBase.Lists.Dupfree.
 Require Import Coq.Vectors.Vector.
 
 Open Scope vector_scope.
+Import VectorNotations2.
 
 
 Inductive dupfree X : forall n, Vector.t X n -> Prop :=
@@ -166,7 +167,7 @@ Compute let xs := [|1;2;3;4;5;6|] in
   Qed.
   
   Lemma count_replace (n : nat) (xs : t X n) (x y : X) (i : Fin.t n) :
-    Dec (x = y) + count x xs = Dec (x = xs[@i]) + count x (replace xs i y).
+    bool2nat (Dec (x = y)) + count x xs = bool2nat (Dec (x = xs[@i])) + count x (replace xs i y).
   Proof.
     induction xs; intros; cbn -[nth count] in *.
     - inv i.
