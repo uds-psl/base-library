@@ -64,7 +64,7 @@ Defined.
 (** The sum of two nats can only be 1 if one of them is 1 and the other one is 0 *)
 Lemma proveOne m n: m = 1 /\ n = 0 \/ n = 1 /\ m = 0 -> m + n = 1.
 Proof.
-  omega.
+  lia.
 Qed.
 
 Lemma sum_enum_ok (X: finType) (Y: finType) x :

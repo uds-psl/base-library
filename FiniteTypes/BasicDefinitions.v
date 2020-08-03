@@ -91,7 +91,7 @@ Proof.
     + apply IHA. intros F. apply H. now right.
   - tauto.
   - cbn. dec.
-    + subst a. omega.
+    + subst a. lia.
     + intros H [E | E].
       * now symmetry in E.
       * tauto.
@@ -101,7 +101,7 @@ Lemma countIn (X:eqType) (x:X) A:
   count A x > 0 -> x el A.
 Proof.
   induction A.
-  - cbn. omega.
+  - cbn. lia.
   - cbn.  dec.
     + intros. left. symmetry. exact e.
     + intros. right. apply IHA. exact H.
@@ -113,8 +113,8 @@ Proof.
   induction A.
   - intros [].
   - intros [[] | E]; cbn.
-    + deq a. omega.
-    + specialize (IHA E). dec; omega.
+    + deq a. lia.
+    + specialize (IHA E). dec; lia.
 Qed.
 
 Lemma count_in_equiv (X: eqType) (x:X) A : count A x > 0 <-> x el A.
@@ -179,7 +179,7 @@ Qed.
 
 Lemma card_length_leq (X: eqType) (A: list X) : card A <= length A.
 Proof.
-  induction A; auto. cbn. dec; omega.
+  induction A; auto. cbn. dec; lia.
 Qed.
 
 (** * Various helpful Lemmas *)
@@ -190,7 +190,7 @@ Lemma appendNil (X: Type) (A B: list X) :
   A ++ B = nil -> A = nil /\ B = nil.
 Proof.
   intros H. assert (|A ++ B| = 0) by now rewrite H.
-  rewrite app_length in H0. rewrite <- !length_zero_iff_nil. omega.
+  rewrite app_length in H0. rewrite <- !length_zero_iff_nil. lia.
 Qed.
 
 Lemma countZero (X: eqType) (x: X) (A: list X) : count A x = 0 -> not (x el A).
@@ -201,5 +201,5 @@ Qed.
 (** The product of two numbers is greater zero if both numbers are greater zero *)
 Lemma NullMul a b : a > 0 -> b > 0 -> a * b > 0.
 Proof.
-  induction 1; cbn; omega.
+  induction 1; cbn; lia.
 Qed.

@@ -91,7 +91,7 @@ Section Undup.
     - reflexivity.
     - decide (x el A) as [G|].
       + exfalso; auto.
-      + omega.
+      + lia.
   Qed.
 
   Fixpoint undup (A : list X) : list X :=

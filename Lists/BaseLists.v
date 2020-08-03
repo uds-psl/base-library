@@ -24,7 +24,7 @@ Lemma list_cycle  (X : Type) (A : list X) x :
   x::A <> A.
 Proof.
   intros B.
-  assert (C: |x::A| <> |A|) by (cbn; omega).
+  assert (C: |x::A| <> |A|) by (cbn; lia).
   apply C. now rewrite B.
 Qed.
 
@@ -415,7 +415,7 @@ Lemma skipn_length (X : Type) (n : nat) (xs : list X) :
   length (skipn n xs) = length xs - n.
 Proof.
   revert xs. induction n; intros; cbn.
-  - omega.
+  - lia.
   - destruct xs; cbn; auto.
 Qed.
 
@@ -434,13 +434,13 @@ Proof. induction m; cbn; f_equal; auto. Qed.
 Lemma repeat_S_cons (X : Type) (n : nat) (a : X) :
   a :: repeat a n = repeat a n ++ [a].
 Proof.
-  replace (a :: repeat a n) with (repeat a (S n)) by trivial. replace (S n) with (n+1) by omega.
+  replace (a :: repeat a n) with (repeat a (S n)) by trivial. replace (S n) with (n+1) by lia.
   rewrite repeat_add_app. cbn. trivial.
 Qed.
 
 Lemma repeat_app_eq (X : Type) (m n : nat) (a : X) :
   repeat a n ++ repeat a m = repeat a m ++ repeat a n.
-Proof. rewrite <- !repeat_add_app. f_equal. omega. Qed.
+Proof. rewrite <- !repeat_add_app. f_equal. lia. Qed.
 
 Lemma repeat_eq_iff (X : Type) (n : nat) (a : X) x :
   x = repeat a n <-> length x = n /\ forall y, y el x -> y = a.

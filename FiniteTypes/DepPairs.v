@@ -21,9 +21,9 @@ Proof.
   split.
   -rewrite in_map_iff. destruct H. cbn. exists e. split.
    +reflexivity.
-   +apply countIn. setoid_rewrite enum_ok. omega.
+   +apply countIn. setoid_rewrite enum_ok. lia.
   -rewrite in_map_iff. eexists. split. reflexivity.
-   apply countIn. setoid_rewrite enum_ok. omega. 
+   apply countIn. setoid_rewrite enum_ok. lia. 
 Qed.
 
 Hint Extern 4 (finTypeC (EqType ({_ : _ & _}))) => eapply finType_depPair : typeclass_instances.

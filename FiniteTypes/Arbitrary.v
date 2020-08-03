@@ -153,7 +153,7 @@ Defined.
 (* (*   - intros x H. apply in_map_iff. *) *)
 (* (*     eexists. Unshelve. Focus 2. *) *)
 (* (*     + exists x. unfold pure. now dec. *) *)
-(* (*     + cbn. split; auto. apply countIn with (A:= undup (toSubList A _)). rewrite enum_ok_fromList. omega. *) *)
+(* (*     + cbn. split; auto. apply countIn with (A:= undup (toSubList A _)). rewrite enum_ok_fromList. lia. *) *)
 (* (* Qed. *) *)
 
 
@@ -190,5 +190,5 @@ Defined.
 (*   - intros x H. apply in_map_iff. *)
 (*     eexists. Unshelve. Focus 2. *)
 (*     + exists x. unfold pure. now dec. *)
-(*     + cbn. split; auto. apply countIn with (A:= undup (toSubList A _)). rewrite enum_ok_fromList. omega. *)
+(*     + cbn. split; auto. apply countIn with (A:= undup (toSubList A _)). rewrite enum_ok_fromList. lia. *)
 (* Qed.  *)

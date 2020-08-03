@@ -73,4 +73,4 @@ tramp
 *.pdf
 .coqdeps.d
 
-
+.lia.cache

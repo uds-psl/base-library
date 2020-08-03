@@ -56,19 +56,19 @@ Section Cardinality.
   Proof.
   revert B. 
   induction A as [|x A]; intros B D; cbn.
-  - omega.
+  - lia.
   - apply incl_lcons in D as [D D1].
     decide (x el A) as [E|E].
     + auto.
     + rewrite (card_in_rem D).
-      enough (card A <= card (rem B x)) by omega.
+      enough (card A <= card (rem B x)) by lia.
       apply IHA. auto.
   Qed.
 
   Lemma card_eq A B :
     A === B -> card A = card B.
   Proof.
-    intros [E F]. apply card_le in E. apply card_le in F. omega.
+    intros [E F]. apply card_le in E. apply card_le in F. lia.
   Qed.
 
   Lemma card_cons_rem x A :
@@ -85,7 +85,7 @@ Section Cardinality.
   Proof.
     destruct A as [|x A]; intros D.
     - reflexivity.
-    - exfalso. rewrite card_cons_rem in D. omega.
+    - exfalso. rewrite card_cons_rem in D. lia.
   Qed.
 
   Lemma card_ex A B :
@@ -93,7 +93,7 @@ Section Cardinality.
   Proof.
     intros D.
     decide (B <<= A) as [E|E].
-    - exfalso. apply card_le in E. omega.
+    - exfalso. apply card_le in E. lia.
     - apply list_exists_not_incl; auto.
   Qed.
 
@@ -109,7 +109,7 @@ Section Cardinality.
       + rewrite (IHA (rem B x)).
         * symmetry. apply rem_reorder, D.
         * auto.
-        * apply card_in_rem in D. omega.
+        * apply card_in_rem in D. lia.
   Qed.
 
   Lemma card_lt A B x :
@@ -118,7 +118,7 @@ Section Cardinality.
     intros D E F.
     decide (card A = card B) as [G|G].
     + exfalso. apply F. apply (card_equi D); auto.
-    + apply card_le in D. omega.
+    + apply card_le in D. lia.
   Qed.
 
   Lemma card_or A B :
@@ -127,7 +127,7 @@ Section Cardinality.
     intros D.
     decide (card A = card B) as [F|F].
     - left. apply card_equi; auto.
-    - right. apply card_le in D. omega.
+    - right. apply card_le in D. lia.
   Qed.
 
 End Cardinality.

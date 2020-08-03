@@ -11,15 +11,15 @@ Proof.
   induction A.
   - constructor.
   - intro H. constructor.
-    + cbn in H.  specialize (H a). deq a. assert (count A a = 0) by omega. now apply countZero.
-    + apply IHA. intro x. specialize (H x). cbn in H. dec; omega.
+    + cbn in H.  specialize (H a). deq a. assert (count A a = 0) by lia. now apply countZero.
+    + apply IHA. intro x. specialize (H x). cbn in H. dec; lia.
 Qed.
 
 Lemma dupfree_elements (X: finType) : dupfree (elem X).
 Proof.
   destruct X as [X [A AI]]. assert (forall x, count A x <= 1) as H'.
   {
-    intro x. specialize (AI x). omega.
+    intro x. specialize (AI x). lia.
   }
   now apply dupfree_countOne.  
 Qed.
@@ -54,7 +54,7 @@ Qed.
 (* Proof. *)
 (*   pose proof (elem_spec x).  unfold Cardinality.  destruct (elem X). *)
 (*   - contradiction H. *)
-(*   - cbn. omega. *)
+(*   - cbn. lia. *)
 (* Qed.  *)
 
 (* Lemma Cardinality_card_eq (X: finType): card (elem X) = Cardinality X. *)
@@ -89,12 +89,12 @@ Qed.
 (* Theorem pidgeonHole_surj (X Y: finType) (f: X -> Y) (surj: surjective f): Cardinality X >= Cardinality Y. *)
 (* Proof. *)
 (*   rewrite <- (getImage_length f). rewrite <- Cardinality_card_eq. *)
-(*     pose proof (card_le (surj_sub surj)) as H. pose proof (card_length_leq (getImage f)) as H'. omega. *)
+(*     pose proof (card_le (surj_sub surj)) as H. pose proof (card_length_leq (getImage f)) as H'. lia. *)
 (* Qed. *)
 
 (* Lemma eq_iff (x y: nat) : x >= y /\ x <= y -> x = y. *)
 (* Proof. *)
-(*   omega. *)
+(*   lia. *)
 (* Qed. *)
 
 (* Corollary pidgeonHole_bij (X Y: finType) (f: X -> Y) (bij: bijective f): *)

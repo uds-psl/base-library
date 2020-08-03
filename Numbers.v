@@ -7,8 +7,8 @@ Lemma complete_induction (p : nat -> Prop) (x : nat) :
 (forall x, (forall y, y<x -> p y) -> p x) -> p x.
 
 Proof. intros A. apply A. induction x ; intros y B.
-exfalso ; omega.
-apply A. intros z C. apply IHx. omega. Qed.
+exfalso ; lia.
+apply A. intros z C. apply IHx. lia. Qed.
 
 Lemma size_induction X (f : X -> nat) (p : X -> Prop) :
   (forall x, (forall y, f y < f x -> p y) -> p x) -> 
@@ -18,8 +18,8 @@ Proof.
   intros IH x. apply IH. 
   assert (G: forall n y, f y < n -> p y).
   { intros n. induction n.
-    - intros y B. exfalso. omega.
-    - intros y B. apply IH. intros z C. apply IHn. omega. }
+    - intros y B. exfalso. lia.
+    - intros y B. apply IH. intros z C. apply IHn. lia. }
   apply G.
 Qed.
 
@@ -33,8 +33,8 @@ Proof.
   intros D x. apply D. revert x.
   enough (forall n y, sigma y < n -> p y) by eauto.
   intros n. induction n; intros y E. 
-  - exfalso; omega.
-  - apply D. intros x F.  apply IHn. omega.
+  - exfalso; lia.
+  - apply D. intros x F.  apply IHn. lia.
 Qed.
 
 Arguments size_recursion {X} sigma {p} _ _.
@@ -68,7 +68,7 @@ Section Iteration.
         + left. now rewrite B. 
         + destruct (A n) as [C|C].
           * left. now rewrite C. 
-          * right. cbn in C. omega. }
-    destruct (A (sigma x)), (B (sigma x)); auto; exfalso; omega.
+          * right. cbn in C. lia. }
+    destruct (A (sigma x)), (B (sigma x)); auto; exfalso; lia.
   Qed.
 End Iteration.

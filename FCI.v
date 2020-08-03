@@ -43,10 +43,10 @@ Section Fip.
   Proof.
     revert A. induction n as [|n IH]; cbn; intros A H H1.
     - enough (A === R) as (H2&H3) by (hnf; auto).
-      apply card_or in H as [H|H]. exact H. omega.
+      apply card_or in H as [H|H]. exact H. lia.
     - destruct (find _ R) eqn:E.
       + apply find_some in E as [H2 (H3&H4) % Dec_true]. apply IH. now auto. 
-        rewrite card_cons'. omega. auto.
+        rewrite card_cons'. lia. auto.
       + intros x H2 H3. apply dec_DN. now auto.
         apply find_none with (x := x) in E; auto.
         apply Dec_false in E; auto. 
@@ -59,7 +59,7 @@ Section Fip.
     apply dec_transfer with (P:= x el fip_it (card R) nil); [ | now auto].
     split.
     - revert x. apply fip_it_sound. hnf. auto.
-    - apply (fip_least D). apply fip_it_closed. now auto. omega.
+    - apply (fip_least D). apply fip_it_closed. now auto. lia.
   Qed.
 
 End Fip.
@@ -126,9 +126,9 @@ Section FCI.
         { apply card_lt with (x:=x); intuition. }
         assert (H: card (x :: J) <= card R).
         { apply card_le, incl_cons. apply B. apply it_incl. }
-        unfold size. omega.
+        unfold size. lia.
       + auto.
-    - unfold C, size. f_equal. change (card nil) with 0. omega.
+    - unfold C, size. f_equal. change (card nil) with 0. lia.
   Qed.
   
   Lemma closure x :

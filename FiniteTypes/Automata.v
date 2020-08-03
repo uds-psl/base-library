@@ -728,7 +728,7 @@ Proof.
   + destruct H' as [w' [w'' [E [acc1 acc2]]]].
     assert (|w''| < | e::w|) as L.
     {
-      subst w. cbn. rewrite app_length. omega. 
+      subst w. cbn. rewrite app_length. lia. 
     }
     specialize (H0 w'' L acc2); clear L. destruct H0 as [w1 [E' H]]. exists ((e::w')::w1). split.
     * cbn. rewrite E'. now subst w.

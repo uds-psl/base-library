@@ -36,7 +36,7 @@ Hint Unfold class.
 
 Lemma elem_spec (X: finType) (x:X) : x el (elem X).
 Proof.
-  apply countIn.  pose proof (enum_ok x) as H. unfold elem. omega. 
+  apply countIn.  pose proof (enum_ok x) as H. unfold elem. lia. 
 Qed.
 
 Hint Resolve elem_spec.
@@ -131,8 +131,8 @@ Proof.
   cbn. destruct k.
   -decide _. all:easy.
   -decide _.
-   +subst a. cbn in H2. edestruct H3. eapply nth_In. omega.
-   + cbn in H2. rewrite IHxs. all:try easy;omega.
+   +subst a. cbn in H2. edestruct H3. eapply nth_In. lia.
+   + cbn in H2. rewrite IHxs. all:try easy;lia.
 Qed.
 
 Definition pos_def (X : eqType) (x : X) A n :=  match pos x A with None => n | Some n => n end. 
@@ -162,8 +162,8 @@ Proof.
   generalize (elem A). intros l H.
   induction l;cbn;[|decide _].
   -easy.
-  -omega.
-  -destruct H. congruence. apply IHl in H. omega.
+  -lia.
+  -destruct H. congruence. apply IHl in H. lia.
 Qed.
 
 Lemma index_leq (A:finType) (x:A): index x <= length (elem A).

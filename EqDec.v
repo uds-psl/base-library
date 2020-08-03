@@ -50,7 +50,7 @@ Tactic Notation "decide" constr(p) "as" simple_intropattern(i) :=
   destruct (Dec p) as i.
 Tactic Notation "decide" "_" :=
   destruct (Dec _).
-Tactic Notation "have" constr(E) := let X := fresh "E" in decide E as [X|X]; subst; try congruence; try omega; clear X.
+Tactic Notation "have" constr(E) := let X := fresh "E" in decide E as [X|X]; subst; try congruence; try lia; clear X.
 
 Lemma Dec_true P {H : dec P} : dec2bool (Dec P) = true -> P.
 Proof.

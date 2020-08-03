@@ -59,8 +59,8 @@ Section Fix_X.
   Lemma nth_error_none A n l : nth_error l n = @None A -> length l <= n.
   Proof. revert n;
            induction l; intros n.
-         - simpl; omega.
-         - simpl. intros. destruct n. inv H. inv H. assert (| l | <= n). eauto. omega.
+         - simpl; lia.
+         - simpl. intros. destruct n. inv H. inv H. assert (| l | <= n). eauto. lia.
   Qed.
 
   Lemma pos_None (x : X) l l' : pos x l = None-> pos x l' = None -> pos x (l ++ l') = None.
@@ -97,9 +97,9 @@ Section Fix_X.
     revert e n; induction E; simpl; intros.
     - inv H.
     - decide (e = a).
-      + inv H. simpl. omega.
+      + inv H. simpl. lia.
       + destruct (pos e E) eqn:EE.
-        * inv H. assert (n1 < |E|) by eauto.  omega.
+        * inv H. assert (n1 < |E|) by eauto.  lia.
         * inv H.
   Qed.
 
@@ -123,7 +123,7 @@ Section Fix_X.
   Proof.
     induction xs; intros; simpl.
     - reflexivity.
-    - repeat destruct Dec; try congruence; try omega; subst. 
+    - repeat destruct Dec; try congruence; try lia; subst. 
       + rewrite IHxs; eauto. + rewrite IHxs; eauto.
   Qed.
 
