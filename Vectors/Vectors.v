@@ -123,10 +123,9 @@ Qed.
 Search Vector.map Vector.In.
 
 Ltac destruct_vector_in :=
-  match goal with
-  | [ H: Vector.In _ [||] |- _ ] => now apply In_nil in H
-  | [ H: Vector.In _ (_ ::: _) |- _ ] => apply In_cons in H as [-> | H] (* Try replacing it first *)
-  | [ H: Vector.In _ (_ ::: _) |- _ ] => apply In_cons in H as [H | H]
+  lazymatch goal with
+  | [ H: Vector.In _ [||] |- _ ] => solve [exfalso;simple apply In_nil in H;exact H]
+  | [ H: Vector.In _ (_ ::: _) |- _ ] => first [apply In_cons in H as [-> (* Try replacing it first *)| H] | apply In_cons in H as [H | H]] 
   end.
 
 (*
@@ -334,10 +333,10 @@ Qed.
 
 Ltac simpl_vector_inv :=
   repeat match goal with
-         | [ H : [||] = (_ ::: _) |- _ ] => now inv H
-         | [ H : (_ ::: _) = [||]  |- _ ] => now inv H
-         | [ H : Fin.F1 = Fin.FS _ |- _] => now inv H
-         | [ H : Fin.FS _ = Fin.F1 |- _] => now inv H
+         | [ H : [||] = (_ ::: _) |- _ ] => solve [discriminate H]
+         | [ H : (_ ::: _) = [||]  |- _ ] => solve [discriminate H]
+         | [ H : Fin.F1 = Fin.FS _ |- _] => solve [discriminate H]
+         | [ H : Fin.FS _ = Fin.F1 |- _] => solve [discriminate H]
          | [ H : Fin.FS _ = Fin.FS _ |- _] =>
            first
              [ apply Fin.FS_inj in H as ->
