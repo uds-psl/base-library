@@ -125,7 +125,7 @@ Search Vector.map Vector.In.
 Ltac destruct_vector_in :=
   lazymatch goal with
   | [ H: Vector.In _ [||] |- _ ] => solve [exfalso;simple apply In_nil in H;exact H]
-  | [ H: Vector.In _ (_ ::: _) |- _ ] => first [apply In_cons in H as [-> (* Try replacing it first *)| H] | apply In_cons in H as [H | H]] 
+  | [ H: Vector.In _ (?x ::: _) |- _ ] => apply In_cons in H as [H| H] ; try (is_var x;subst x) 
   end.
 
 (*
@@ -337,12 +337,9 @@ Ltac simpl_vector_inv :=
          | [ H : (_ ::: _) = [||]  |- _ ] => solve [discriminate H]
          | [ H : Fin.F1 = Fin.FS _ |- _] => solve [discriminate H]
          | [ H : Fin.FS _ = Fin.F1 |- _] => solve [discriminate H]
-         | [ H : Fin.FS _ = Fin.FS _ |- _] =>
-           first
-             [ apply Fin.FS_inj in H as ->
-             | apply Fin.FS_inj in H as <-
-             | apply Fin.FS_inj in H
-             ]
+         | [ H : Fin.FS ?i = Fin.FS ?j |- _] =>
+           apply Fin.FS_inj in H;
+           first [is_var i;subst i | is_var j;subst j | idtac]
          end.
 
 
